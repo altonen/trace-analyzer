@@ -1,7 +1,11 @@
+use gnuplot::{Caption, Color, Figure};
 use regex::Regex;
-use std::error::Error;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+
+use std::{
+    error::Error,
+    fs::File,
+    io::{prelude::*, BufReader},
+};
 
 struct BlockHeight {
     time: String,
@@ -33,12 +37,39 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
     }
 
-    for block_height in block_heights {
+    for block_height in &block_heights {
         println!(
             "{}: best {} finalized {}",
             block_height.time, block_height.best, block_height.finalized
         );
     }
 
+    let y = [
+        block_heights[0].best,
+        block_heights[block_heights.len() - 1].best + 100,
+    ];
+    // let y = [3u32, 4, 5];
+    let best = block_heights
+        .iter()
+        .map(|info| info.best)
+        .collect::<Vec<usize>>();
+    let finalized = block_heights
+        .iter()
+        .map(|info| info.finalized)
+        .collect::<Vec<usize>>();
+    let time = block_heights
+        .iter()
+        .enumerate()
+        .map(|(i, _info)| i)
+        .collect::<Vec<usize>>();
+    let mut fg = Figure::new();
+    fg.axes2d()
+        .lines(&time, &best, &[Caption("Best block"), Color("blue")])
+        .lines(
+            &time,
+            &finalized,
+            &[Caption("Finalized block"), Color("red")],
+        );
+    fg.show().unwrap();
     Ok(())
 }
