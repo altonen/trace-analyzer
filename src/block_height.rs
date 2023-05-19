@@ -10,6 +10,13 @@ use std::{
     io::{prelude::*, BufReader},
 };
 
+// TODO: number block requests sent (total and per-peer)
+// TODO: number of block responses received (total and per-peer)
+// TODO: number of failed block requests (total and per-peer)
+// TODO: number of notifications received for each substream (total and per-peer)
+// TODO: number of notifications sent for each substream (total and per-peer)
+// TODO: how to visualize this information?
+
 struct BlockHeight {
     time: String,
     best: usize,
