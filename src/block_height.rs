@@ -1,7 +1,10 @@
+use chrono::NaiveTime;
 use gnuplot::{Caption, Color, Figure};
+use plotters::prelude::*;
 use regex::{Regex, RegexSet};
 
 use std::{
+    collections::{hash_map::Entry, HashMap},
     error::Error,
     fs::File,
     io::{prelude::*, BufReader},
@@ -17,6 +20,8 @@ struct BlockAnnouncement {
     time: String,
     number: usize,
 }
+
+const OUT_FILE_NAME: &'static str = "histogram.png";
 
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let set = RegexSet::new(&[
@@ -34,6 +39,10 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
     let mut block_heights = Vec::new();
     let mut block_announcements = Vec::new();
+    let mut pending_block_imports = HashMap::new();
+    let mut block_import_times = HashMap::new();
+    let mut test_import_times = Vec::new();
+    let mut highest = 0u32;
 
     for line in reader.lines() {
         let line = line?;
@@ -69,10 +78,21 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 });
             }
             2 => {
-                println!("{:?}: {:?}", &captures[2], &captures[3]);
+                pending_block_imports.insert(captures[3].to_owned(), captures[2].to_owned());
             }
             3 => {
-                println!("{:?}: {:?}", &captures[2], &captures[3]);
+                if let Some(time) = pending_block_imports.remove(&captures[3]) {
+                    let time1 = NaiveTime::parse_from_str(&time, "%H:%M:%S%.3f").unwrap();
+                    let time2 = NaiveTime::parse_from_str(&captures[2], "%H:%M:%S%.3f").unwrap();
+                    let duration = time2.signed_duration_since(time1);
+                    let test = duration.num_milliseconds();
+                    *block_import_times.entry(test).or_insert(0) += 1;
+                    let test = u32::try_from(test).unwrap();
+                    test_import_times.push(test);
+                    if test > highest {
+                        highest = test;
+                    }
+                }
             }
             _ => {
                 println!("{captures:?}");
@@ -80,7 +100,37 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
     }
 
-    println!("done with loop");
+    println!("done with loop {block_import_times:?}");
+
+    let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 1000)).into_drawing_area();
+
+    root.fill(&WHITE)?;
+
+    let mut chart = ChartBuilder::on(&root)
+        .x_label_area_size(35)
+        .y_label_area_size(40)
+        .margin(5)
+        .caption("Block import times", ("sans-serif", 50.0))
+        .build_cartesian_2d(
+            (0u32..highest).into_segmented(),
+            0u32..block_import_times.len() as u32,
+        )?;
+
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .y_desc("Count")
+        .x_desc("Milliseconds")
+        .axis_desc_style(("sans-serif", 15))
+        .draw()?;
+
+    chart.draw_series(
+        Histogram::vertical(&chart).data(test_import_times.iter().map(|x: &u32| (*x, 1))),
+    )?;
+
+    // To avoid the IO failure being ignored silently, we manually call the present function
+    root.present().expect("Unable to write result to file, please make sure 'plotters-doc-data' dir exists under current dir");
+    println!("Result has been saved to {}", OUT_FILE_NAME);
 
     let best = block_heights
         .iter()
