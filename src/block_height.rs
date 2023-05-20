@@ -24,21 +24,51 @@ fn export(filename: &str, data: Vec<String>) -> Result<(), Box<dyn Error>> {
 }
 
 #[derive(Debug, Default)]
+struct ProtocolInfo {
+    bytes_received: usize,
+    bytes_sent: usize,
+}
+
+#[derive(Debug, Default)]
 struct PeerInfo {
     sent_requests: usize,
     received_responses: usize,
     disconnected: usize,
     connected: usize,
     evicted: usize,
+    protocols: HashMap<String, ProtocolInfo>,
 }
 
 #[derive(Debug, Default)]
 struct NetworkInfo {
+    discovered_peers: usize,
     sent_requests: usize,
     received_responses: usize,
     disconnected: usize,
     connected: usize,
     evicted: usize,
+    protocols: HashMap<String, ProtocolInfo>,
+}
+
+fn string_to_protocol(string: &str) -> String {
+    if string.contains("grandpa") {
+        return String::from("grandpa");
+    }
+
+    if string.contains("block-announce") {
+        return String::from("block-announces");
+    }
+
+    panic!("invalid protocol {string}");
+}
+
+fn set_id_to_protocol(string: &str) -> String {
+    match string {
+        "0" => String::from("block-announces"),
+        "1" => String::from("transactions"),
+        "2" => String::from("grandpa"),
+        _ => panic!("invalid set id"),
+    }
 }
 
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
@@ -52,6 +82,8 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected.*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\) => Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes.*",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API => Notification\(PeerId\(\"([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes.*"#,
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -147,6 +179,38 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 entry.evicted += 1;
                 network_info.evicted += 1;
             }
+            9 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+
+                entry
+                    .protocols
+                    .entry(set_id_to_protocol(&captures[4]))
+                    .or_default()
+                    .bytes_received += captures[5].parse::<usize>().unwrap();
+
+                network_info
+                    .protocols
+                    .entry(set_id_to_protocol(&captures[4]))
+                    .or_default()
+                    .bytes_received += captures[5].parse::<usize>().unwrap();
+            }
+            10 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+
+                entry
+                    .protocols
+                    .entry(string_to_protocol(&captures[4]))
+                    .or_default()
+                    .bytes_received += captures[5].parse::<usize>().unwrap();
+
+                network_info
+                    .protocols
+                    .entry(string_to_protocol(&captures[4]))
+                    .or_default()
+                    .bytes_received += captures[5].parse::<usize>().unwrap();
+            }
             _ => {
                 println!("{captures:?}");
             }
@@ -160,8 +224,6 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
     println!("{:#?}", peer_info);
     println!("{:#?}", network_info);
-    // println!("{:#?}", block_announcements);
-    // println!("{:#?}", block_heights);
 
     Ok(())
 }
