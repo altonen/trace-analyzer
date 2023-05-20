@@ -4,7 +4,7 @@ use plotters::prelude::*;
 use regex::{Regex, RegexSet};
 
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::{hash_map::Entry, HashMap, HashSet},
     error::Error,
     fs::File,
     io::{prelude::*, BufReader, BufWriter, Write},
@@ -23,12 +23,35 @@ fn export(filename: &str, data: Vec<String>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[derive(Debug, Default)]
+struct PeerInfo {
+    sent_requests: usize,
+    received_responses: usize,
+    disconnected: usize,
+    connected: usize,
+    evicted: usize,
+}
+
+#[derive(Debug, Default)]
+struct NetworkInfo {
+    sent_requests: usize,
+    received_responses: usize,
+    disconnected: usize,
+    connected: usize,
+    evicted: usize,
+}
+
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let set = RegexSet::new(&[
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*target=#(\d+) \((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Pre-validating received.*with number (\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Header ([^\s]+) has (\d+) logs",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*New block request for ([a-zA-Z0-9]+).*Number\((\d+)\).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*BlockResponse 0 from ([a-zA-Z0-9]+).*\((\d+)\.\.(\d+)\).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected.*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+).*",
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -37,11 +60,14 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         .map(|pat| Regex::new(pat).unwrap())
         .collect();
 
+    let mut peer_info = HashMap::new();
+    let mut network_info = NetworkInfo::default();
     let mut pending_block_imports = HashMap::new();
     let mut peers = vec![String::from("date,value\n")];
     let mut block_heights = vec![String::from("date,best,finalized\n")];
     let mut import_times = vec![String::from("duration\n")];
     let mut block_announcements = vec![String::from("date,value\n")];
+    let mut sent_requests = vec![String::from("date,value\n")];
 
     for line in reader.lines() {
         let line = line?;
@@ -86,6 +112,37 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     ));
                 }
             }
+            4 => {
+                sent_requests.push(format!("{},{}\n", &captures[2], &captures[3]));
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+                entry.sent_requests += 1;
+                network_info.sent_requests += 1;
+            }
+            5 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+                entry.received_responses += 1;
+                network_info.received_responses += 1;
+            }
+            6 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+                entry.connected += 1;
+                network_info.connected += 1;
+            }
+            7 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+                entry.connected += 1;
+                network_info.disconnected += 1;
+            }
+            8 => {
+                let mut entry: &mut PeerInfo =
+                    peer_info.entry(captures[3].to_string()).or_default();
+                entry.evicted += 1;
+                network_info.evicted += 1;
+            }
             _ => {
                 println!("{captures:?}");
             }
@@ -96,6 +153,11 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     export("block_info.csv", block_heights).unwrap();
     export("block_import_times.csv", import_times).unwrap();
     export("block_announcements.csv", block_announcements).unwrap();
+
+    println!("{:#?}", peer_info);
+    println!("{:#?}", network_info);
+    // println!("{:#?}", block_announcements);
+    // println!("{:#?}", block_heights);
 
     Ok(())
 }
