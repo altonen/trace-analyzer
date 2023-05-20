@@ -7,7 +7,7 @@ use std::{
     collections::{hash_map::Entry, HashMap},
     error::Error,
     fs::File,
-    io::{prelude::*, BufReader},
+    io::{prelude::*, BufReader, BufWriter, Write},
 };
 
 // TODO: number block requests sent (total and per-peer)
@@ -15,6 +15,7 @@ use std::{
 // TODO: number of failed block requests (total and per-peer)
 // TODO: number of notifications received for each substream (total and per-peer)
 // TODO: number of notifications sent for each substream (total and per-peer)
+// TODO: number of evicted peers
 // TODO: how to visualize this information?
 
 struct BlockHeight {
@@ -28,11 +29,41 @@ struct BlockAnnouncement {
     number: usize,
 }
 
+struct PeerInformation {
+    /// How many block requests were sent to peer.
+    sent_block_requests: usize,
+
+    /// How many block requests were received from peer.
+    received_block_responses: usize,
+
+    /// How many block requests failed.
+    block_request_failures: usize,
+}
+
+struct Execution {
+    /// Number of peers.
+    peers: Vec<usize>,
+}
+
 const OUT_FILE_NAME: &'static str = "histogram.png";
+
+fn export_to_csv(filename: &str, data: Vec<(String, usize)>) -> Result<(), Box<dyn Error>> {
+    let file = File::create(filename)?;
+    let mut writer = BufWriter::new(file);
+
+    for (time, data) in data {
+        let line = format!("{},{}\n", time, data);
+        writer.write_all(line.as_bytes())?;
+    }
+
+    writer.flush()?;
+
+    Ok(())
+}
 
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let set = RegexSet::new(&[
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*target=#(\d+).*best: #(\d+).*finalized #(\d+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*target=#(\d+) \((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Pre-validating received.*with number (\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Header ([^\s]+) has (\d+) logs",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\).*",
@@ -50,6 +81,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut block_import_times = HashMap::new();
     let mut test_import_times = Vec::new();
     let mut highest = 0u32;
+    let mut peers = Vec::new();
 
     for line in reader.lines() {
         let line = line?;
@@ -72,10 +104,15 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
         match index {
             0 => {
+                peers.push((
+                    captures[2].to_string(),
+                    captures[4].parse::<usize>().unwrap(),
+                ));
+
                 block_heights.push(BlockHeight {
                     time: captures[2].to_string(),
-                    best: captures[4].parse::<usize>().unwrap(),
-                    finalized: captures[5].parse::<usize>().unwrap(),
+                    best: captures[5].parse::<usize>().unwrap(),
+                    finalized: captures[6].parse::<usize>().unwrap(),
                 });
             }
             1 => {
@@ -107,7 +144,8 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
     }
 
-    println!("done with loop {block_import_times:?}");
+    println!("done with loop {peers:#?}");
+    export_to_csv("peers.csv", peers);
 
     let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 1000)).into_drawing_area();
 
