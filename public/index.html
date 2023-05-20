@@ -28,13 +28,20 @@
 
     <div id="tab2" class="tab-pane fade">
       <h3>General information</h3>
+
+      <span class="badge badge-success" role="alert" >Receives block announcements</span>
+      <span class="badge badge-danger" role="alert" >Best block lagging</span>
+      <span class="badge badge-danger" role="alert" >Finality lagging</span>
+      <span class="badge badge-danger" role="alert" >Slow block import</span>
+      <br><br>
+
       <h4>Best and finalized blocks</p>
       <div id="best_and_finalized"></div>
 
       <h4>Received block announcements, graph for block height</h4>
       <div id="block_announcements"></div>
 
-      <h4>Block import times, invereted</h4>
+      <h4>Block import times, inverted</h4>
       <div id="block_import"></div>
       <h4>Received finality notifications, graph for block height</h4>
       <div id="finality_notifications"></div>
@@ -65,8 +72,8 @@
 
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 100, bottom: 30, left: 30},
-    width = 1000 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+    width = 800 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#best_and_finalized")
@@ -156,8 +163,8 @@ function(data) {
 
           // set the dimensions and margins of the graph
           var margin = {top: 10, right: 30, bottom: 30, left: 60},
-              width = 1000 - margin.left - margin.right,
-              height = 600 - margin.top - margin.bottom;
+              width = 8000 - margin.left - margin.right,
+              height = 400 - margin.top - margin.bottom;
 
           // append the svg object to the body of the page
           var svg2 = d3.select("#block_announcements")
@@ -180,8 +187,8 @@ function(data) {
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x));
               var y = d3.scaleLinear()
-                .domain( [17954730, 17954764])
-                .range([ height, 0 ]);
+                .domain([17954730, 17954764])
+                .range([height, 0]);
               svg2.append("g")
                 .call(d3.axisLeft(y));
               svg2.append("path")
@@ -207,8 +214,8 @@ function(data) {
 
           
 var margin = {top: 10, right: 30, bottom: 30, left: 40},
-    width = 1000 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+    width = 800 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg3 = d3.select("#block_import")
