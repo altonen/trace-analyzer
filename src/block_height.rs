@@ -25,6 +25,8 @@ fn export(filename: &str, data: Vec<String>) -> Result<(), Box<dyn Error>> {
 
 #[derive(Debug, Default)]
 struct ProtocolInfo {
+    messages_sent: usize,
+    messages_received: usize,
     bytes_received: usize,
     bytes_sent: usize,
 }
@@ -100,6 +102,17 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut import_times = vec![String::from("duration\n")];
     let mut block_announcements = vec![String::from("date,value\n")];
     let mut sent_requests = vec![String::from("date,value\n")];
+    let mut protocol_send_byte_usage =
+        vec![String::from("date,block-announces,grandpa,transactions\n")];
+    let mut protocol_recv_byte_usage =
+        vec![String::from("date,block-announces,grandpa,transactions\n")];
+    let mut protocol_recv_msg_usage =
+        vec![String::from("date,block-announces,grandpa,transactions\n")];
+    let mut protocol_send_msg_usage =
+        vec![String::from("date,block-announces,grandpa,transactions\n")];
+
+    let mut current_time = None;
+    let mut current_protocol_info: HashMap<String, ProtocolInfo> = HashMap::new();
 
     for line in reader.lines() {
         let line = line?;
@@ -119,6 +132,80 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
 
         let (index, captures) = &matches[0];
+
+        if current_time.is_none() {
+            let time = captures[2].to_string();
+            current_time = Some(time);
+        }
+
+        let time1 =
+            NaiveTime::parse_from_str(current_time.as_ref().unwrap(), "%H:%M:%S%.3f").unwrap();
+        let time2 = NaiveTime::parse_from_str(&captures[2], "%H:%M:%S%.3f").unwrap();
+
+        if time2.signed_duration_since(time1).num_milliseconds() > 10_000 {
+            if !current_protocol_info.is_empty() {
+                protocol_send_byte_usage.push(format!(
+                    "{},{},{},{}\n",
+                    time1,
+                    current_protocol_info
+                        .get("block-announces")
+                        .map_or(0, |info| info.bytes_sent),
+                    current_protocol_info
+                        .get("grandpa")
+                        .map_or(0, |info| info.bytes_sent),
+                    current_protocol_info
+                        .get("transactions")
+                        .map_or(0, |info| info.bytes_sent),
+                ));
+
+                protocol_send_msg_usage.push(format!(
+                    "{},{},{},{}\n",
+                    time1,
+                    current_protocol_info
+                        .get("block-announces")
+                        .map_or(0, |info| info.messages_sent),
+                    current_protocol_info
+                        .get("grandpa")
+                        .map_or(0, |info| info.messages_sent),
+                    current_protocol_info
+                        .get("transactions")
+                        .map_or(0, |info| info.messages_sent),
+                ));
+
+                protocol_recv_byte_usage.push(format!(
+                    "{},{},{},{}\n",
+                    time1,
+                    current_protocol_info
+                        .get("block-announces")
+                        .map_or(0, |info| info.bytes_received),
+                    current_protocol_info
+                        .get("grandpa")
+                        .map_or(0, |info| info.bytes_received),
+                    current_protocol_info
+                        .get("transactions")
+                        .map_or(0, |info| info.bytes_received),
+                ));
+
+                protocol_recv_msg_usage.push(format!(
+                    "{},{},{},{}\n",
+                    time1,
+                    current_protocol_info
+                        .get("block-announces")
+                        .map_or(0, |info| info.messages_received),
+                    current_protocol_info
+                        .get("grandpa")
+                        .map_or(0, |info| info.messages_received),
+                    current_protocol_info
+                        .get("transactions")
+                        .map_or(0, |info| info.messages_received),
+                ));
+
+                current_protocol_info.clear();
+            }
+
+            let time = captures[2].to_string();
+            current_time = Some(time);
+        }
 
         match index {
             0 => {
@@ -194,6 +281,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     .entry(set_id_to_protocol(&captures[4]))
                     .or_default()
                     .bytes_received += captures[5].parse::<usize>().unwrap();
+
+                let mut entry = current_protocol_info
+                    .entry(set_id_to_protocol(&captures[4]))
+                    .or_default();
+                entry.bytes_received += captures[5].parse::<usize>().unwrap();
+                entry.messages_received += 1;
             }
             10 => {
                 let mut entry: &mut PeerInfo =
@@ -210,6 +303,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     .entry(string_to_protocol(&captures[4]))
                     .or_default()
                     .bytes_sent += captures[5].parse::<usize>().unwrap();
+
+                let mut entry = current_protocol_info
+                    .entry(string_to_protocol(&captures[4]))
+                    .or_default();
+                entry.bytes_sent += captures[5].parse::<usize>().unwrap();
+                entry.messages_sent += 1;
             }
             _ => {
                 println!("{captures:?}");
@@ -221,8 +320,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     export("block_info.csv", block_heights).unwrap();
     export("block_import_times.csv", import_times).unwrap();
     export("block_announcements.csv", block_announcements).unwrap();
+    export("bytes_sent.csv", protocol_send_byte_usage).unwrap();
+    export("bytes_received.csv", protocol_recv_byte_usage).unwrap();
+    export("messages_received.csv", protocol_recv_msg_usage).unwrap();
+    export("messages_sent.csv", protocol_send_msg_usage).unwrap();
 
-    println!("{:#?}", peer_info);
+    // println!("{:#?}", peer_info);
     println!("{:#?}", network_info);
 
     Ok(())
