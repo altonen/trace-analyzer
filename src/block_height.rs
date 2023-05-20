@@ -43,7 +43,7 @@ struct NetworkInfo {
 
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let set = RegexSet::new(&[
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*target=#(\d+) \((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*\((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Pre-validating received.*with number (\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Header ([^\s]+) has (\d+) logs",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\).*",
@@ -90,10 +90,10 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
         match index {
             0 => {
-                peers.push(format!("{},{}\n", &captures[2], &captures[4]));
+                peers.push(format!("{},{}\n", &captures[2], &captures[3]));
                 block_heights.push(format!(
                     "{},{},{}\n",
-                    &captures[2], &captures[5], &captures[6],
+                    &captures[2], &captures[4], &captures[5],
                 ));
             }
             1 => {
