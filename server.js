@@ -45,6 +45,22 @@ app.get('/best-and-finalized', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sent-bytes', (req, res) => {
+  const filePath = path.join(__dirname, './', 'bytes_sent.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=bytes_sent.csv');
+  res.sendFile(filePath);
+});
+
+app.get('/received-bytes', (req, res) => {
+  const filePath = path.join(__dirname, './', 'bytes_received.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=bytes_received.csv');
+  res.sendFile(filePath);
+});
+
 app.listen(8000, () => {
   console.log('Server is listening on port 8000');
 });

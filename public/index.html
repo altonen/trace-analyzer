@@ -29,10 +29,9 @@
     <div id="tab2" class="tab-pane fade">
       <h3>General information</h3>
 
-      <span class="badge badge-success" role="alert" >Receives block announcements</span>
       <span class="badge badge-danger" role="alert" >Best block lagging</span>
       <span class="badge badge-danger" role="alert" >Finality lagging</span>
-      <span class="badge badge-danger" role="alert" >Slow block import</span>
+      <span class="badge badge-warning" role="alert" >Slow block import</span>
       <br><br>
 
       <h4>Best and finalized blocks</p>
@@ -43,16 +42,23 @@
 
       <h4>Block import times, inverted</h4>
       <div id="block_import"></div>
+
       <h4>Received finality notifications, graph for block height</h4>
       <div id="finality_notifications"></div>
 
     </div>
     <div id="tab3" class="tab-pane fade">
       <h3>Network information</h3>
+
       <h4>Number of peers</h4>
       <div id="peer_count"></div>
-      <h4>Requests sent</h4>
-      <div id="peer_count"></div>
+
+      <h4>Bytes sent</h4>
+      <div id="bytes_sent"></div>
+
+      <h4>Bytes received</h4>
+      <div id="bytes_received"></div>
+
     </div>
   </div>
 </div>
@@ -250,8 +256,6 @@ var svg3 = d3.select("#block_import")
 
 d3.csv("http://localhost:8000/block-imports", function(data) {
 
-console.log("received data", data);
-
   // X axis: scale and draw:
   var x = d3.scaleLinear()
       .domain([0, 8000])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
@@ -269,12 +273,12 @@ console.log("received data", data);
   // And apply this function to data to get the bins
   var bins = histogram(data);
 
-  // var y = d3.scaleLinear()
-  //     .range([height, 0]);
-  //     y.domain([0, d3.max(bins, function(d) { return d.length; })]);   // d3.hist has to be called before the Y axis obviously
-  var y = d3.scaleLog()
-      .range([0, height])
-      .domain([1, 100000]);
+  var y = d3.scaleLinear()
+      .range([height, 0]);
+      y.domain([0, d3.max(bins, function(d) { return d.length; })]);   // d3.hist has to be called before the Y axis obviously
+  // var y = d3.scaleLog()
+  //     .range([0, height])
+  //     .domain([1, 100000]);
   svg3.append("g")
       .call(d3.axisLeft(y));
 
@@ -287,7 +291,7 @@ console.log("received data", data);
         .attr("transform", function(d) { return "translate(" + x(d.x0) + "," + y(d.length) + ")"; })
         .attr("width", function(d) { return x(d.x1) - x(d.x0) - 1; })
         .attr("height", function(d) { return height - y(d.length); })
-        .style("fill", "#69b3a2")
+        .style("fill", "#69b3a2");
 
 });
       
@@ -295,16 +299,21 @@ console.log("received data", data);
 
 
     });
+
+</script>
+<script>
     $(document).ready(function() {
       $('#tab3-link').click(function() {
         $('#peer_count').empty();
+        $('#bytes_sent').empty();
+        $('#bytes_received').empty();
           // set the dimensions and margins of the graph
-          var margin = {top: 10, right: 30, bottom: 30, left: 60},
-              width = 800 - margin.left - margin.right,
-              height = 400 - margin.top - margin.bottom;
+          var margin = { top: 30, right: 30, bottom: 0, left: 60 },
+              width = 1000 - margin.left - margin.right,
+              height = 500 - margin.top - margin.bottom;
 
           // append the svg object to the body of the page
-          var svg = d3.select("#peer_count")
+          var svg1 = d3.select("#peer_count")
             .append("svg")
               .attr("width", width + margin.left + margin.right)
               .attr("height", height + margin.top + margin.bottom)
@@ -320,15 +329,15 @@ console.log("received data", data);
               var x = d3.scaleTime()
                 .domain(d3.extent(data, function(d) { return d.date; }))
                 .range([ 0, width ]);
-              svg.append("g")
+              svg1.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x));
               var y = d3.scaleLinear()
                 .domain( [0, 50])
                 .range([ height, 0 ]);
-              svg.append("g")
+              svg1.append("g")
                 .call(d3.axisLeft(y));
-              svg.append("path")
+              svg1.append("path")
                 .datum(data)
                 .attr("fill", "none")
                 .attr("stroke", "#69b3a2")
@@ -337,7 +346,7 @@ console.log("received data", data);
                   .x(function(d) { return x(d.date) })
                   .y(function(d) { return y(d.value) })
                   )
-              svg
+              svg1
                 .append("g")
                 .selectAll("dot")
                 .data(data)
@@ -347,7 +356,232 @@ console.log("received data", data);
                   .attr("cy", function(d) { return y(d.value) } )
                   .attr("r", 5)
                   .attr("fill", "#69b3a2")
+          });
+
+
+
+// set the dimensions and margins of the graph
+var margin = { top: 0, right: 100, bottom: 30, left: 80 },
+    width = 1000 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg2 = d3.select("#bytes_sent")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+//Read the data
+d3.csv("http://localhost:8000/sent-bytes",
+
+function(data) {
+console.log("process data");
+
+    var high = 0;
+    var low = Number.MAX_SAFE_INTEGER;
+    var allGroup = ["block-announces", "grandpa", "transactions"]
+    var dataReady = allGroup.map( function(grpName) {
+      return {
+        name: grpName,
+        values: data.map(function(d) {
+           let cur = parseInt(d[grpName]);
+
+            if (cur > high) {
+              high = cur;
+            }
+            if (cur < low) {
+              low = cur;
+            }
+
+          return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
+        })
+      };
+    });
+
+    var myColor = d3.scaleOrdinal()
+      .domain(allGroup)
+      .range(d3.schemeSet2);
+
+    var x = d3.scaleTime()
+      .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.date); }))
+      .range([0, width]);
+    svg2.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
+
+    var y = d3.scaleLinear()
+      .domain([low * 0.9, high * 1.10])
+      .range([height, 0]);
+    svg2.append("g")
+      .call(d3.axisLeft(y));
+
+    var line = d3.line()
+      .x(function(d) { return x(+d.date) })
+      .y(function(d) { return y(+d.value) })
+    svg2.selectAll("myLines")
+      .data(dataReady)
+      .enter()
+      .append("path")
+        .attr("d", function(d){ return line(d.values) } )
+        .attr("stroke", function(d){ return myColor(d.name) })
+        .style("stroke-width", 2)
+        .style("fill", "none")
+
+    svg2
+      .selectAll("myDots")
+      .data(dataReady)
+      .enter()
+        .append('g')
+        .style("fill", function(d){ return myColor(d.name) })
+      .selectAll("myPoints")
+      .data(function(d){ return d.values })
+      .enter()
+      .append("circle")
+        .attr("cx", function(d) {
+            return x(d3.timeParse("%H:%M:%S.%L")(d.date))
+        })
+        .attr("cy", function(d) { return y(d.value) } )
+        .attr("r", 5)
+        .attr("stroke", "white")
+
+    svg2
+      .selectAll("myLabels")
+      .data(dataReady)
+      .enter()
+        .append('g')
+        .append("text")
+          .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
+          .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
+          .attr("x", -65)
+          .attr("y", function(d) {
+              if (d.name == "grandpa") {
+                return -300
+              } else if (d.name == "block-announces") {
+                return -280
+              }
+              return -260
           })
+          .text(function(d) { return d.name; })
+          .style("fill", function(d){ return myColor(d.name) })
+          .style("font-size", 10)
+
+});
+
+          
+// set the dimensions and margins of the graph
+var margin = { top: 10, right: 100, bottom: 30, left: 80 },
+    width = 1000 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg3 = d3.select("#bytes_received")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+//Read the data
+d3.csv("http://localhost:8000/received-bytes",
+
+function(data) {
+console.log("process data");
+
+    var high = 0;
+    var low = Number.MAX_SAFE_INTEGER;
+    var allGroup = ["block-announces", "grandpa", "transactions"]
+    var dataReady = allGroup.map( function(grpName) {
+      return {
+        name: grpName,
+        values: data.map(function(d) {
+           let cur = parseInt(d[grpName]);
+
+            if (cur > high) {
+              high = cur;
+            }
+            if (cur < low) {
+              low = cur;
+            }
+
+          return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
+        })
+      };
+    });
+
+    var myColor = d3.scaleOrdinal()
+      .domain(allGroup)
+      .range(d3.schemeSet2);
+
+    var x = d3.scaleTime()
+      .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.date); }))
+      .range([0, width]);
+    svg3.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
+
+    var y = d3.scaleLinear()
+      .domain([low * 0.9, high * 1.10])
+      .range([height, 0]);
+    svg3.append("g")
+      .call(d3.axisLeft(y));
+
+    var line = d3.line()
+      .x(function(d) { return x(+d.date) })
+      .y(function(d) { return y(+d.value) })
+    svg3.selectAll("myLines")
+      .data(dataReady)
+      .enter()
+      .append("path")
+        .attr("d", function(d){ return line(d.values) } )
+        .attr("stroke", function(d){ return myColor(d.name) })
+        .style("stroke-width", 2)
+        .style("fill", "none")
+
+    svg3
+      .selectAll("myDots")
+      .data(dataReady)
+      .enter()
+        .append('g')
+        .style("fill", function(d){ return myColor(d.name) })
+      .selectAll("myPoints")
+      .data(function(d){ return d.values })
+      .enter()
+      .append("circle")
+        .attr("cx", function(d) {
+            return x(d3.timeParse("%H:%M:%S.%L")(d.date))
+        })
+        .attr("cy", function(d) { return y(d.value) } )
+        .attr("r", 5)
+        .attr("stroke", "white")
+
+    svg3
+      .selectAll("myLabels")
+      .data(dataReady)
+      .enter()
+        .append('g')
+        .append("text")
+          .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
+          .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
+          .attr("x", -65)
+          .attr("y", function(d) {
+              if (d.name == "grandpa") {
+                return -300
+              } else if (d.name == "block-announces") {
+                return -280
+              }
+              return -260
+          })
+          .text(function(d) { return d.name; })
+          .style("fill", function(d){ return myColor(d.name) })
+          .style("font-size", 10)
+
+});
+
+          
       });
     });
   </script></head>
