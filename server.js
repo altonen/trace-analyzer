@@ -1,48 +1,25 @@
+const express = require('express');
+const multer = require('multer');
+const cors = require('cors');
 
-const http = require('http');
-const fs = require('fs');
+const app = express();
+const upload = multer({ dest: 'uploads/' });
 
-const server = http.createServer((req, res) => {
-  if (req.url === '/' && req.method === 'GET') {
-      // Set CORS headers
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+// Enable CORS for all routes
+app.use(cors());
 
-      // Read the CSV file
-      fs.readFile('test.html', 'utf8', (err, data) => {
-        if (err) {
-          res.statusCode = 500;
-          res.end('Error reading CSV file');
-        } else {
-          res.setHeader('Content-Type', 'text/html');
-          res.end(data);
-        }
-      });
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
   }
-  else if (req.url === '/peer-info' && req.method === 'GET') {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
-    // Read the CSV file
-    fs.readFile('peers.csv', 'utf8', (err, data) => {
-      if (err) {
-        res.statusCode = 500;
-        res.end('Error reading CSV file');
-      } else {
-        res.setHeader('Content-Type', 'text/csv');
-        res.end(data);
-      }
-    });
-  } else {
-    res.statusCode = 404;
-    res.end('Not Found');
-  }
+  const { filename, size, mimetype } = req.file;
+  res.send(`File uploaded: ${filename}, size: ${size} bytes, type: ${mimetype}`);
 });
 
-const port = 8000;
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+app.listen(8000, () => {
+  console.log('Server is listening on port 8000');
 });
