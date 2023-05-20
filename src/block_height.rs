@@ -89,15 +89,14 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         .collect();
 
     let mut block_heights = Vec::new();
-    let mut block_announcements = Vec::new();
     let mut pending_block_imports = HashMap::new();
     let mut block_import_times = HashMap::new();
-    let mut test_import_times = Vec::new();
     let mut highest = 0u32;
     let mut peers = Vec::new();
 
     let mut block_heights_v2 = vec![String::from("time,best,finalized\n")];
     let mut import_times = vec![String::from("time\n")];
+    let mut block_announcements = vec![String::from("time,block\n")];
 
     for line in reader.lines() {
         let line = line?;
@@ -137,10 +136,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 });
             }
             1 => {
-                block_announcements.push(BlockAnnouncement {
-                    time: captures[2].to_string(),
-                    number: captures[3].parse::<usize>().unwrap(),
-                });
+                block_announcements.push(format!("{},{}\n", &captures[2], &captures[3]));
             }
             2 => {
                 pending_block_imports.insert(captures[3].to_owned(), captures[2].to_owned());
@@ -170,6 +166,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     export_to_csv("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights_v2).unwrap();
     export("block_import_times.csv", import_times).unwrap();
+    export("block_announcements.csv", block_announcements).unwrap();
 
     // let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 1000)).into_drawing_area();
 
