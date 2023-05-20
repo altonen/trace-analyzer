@@ -95,7 +95,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
     let mut peers = vec![String::from("date,value\n")];
     let mut block_heights_v2 = vec![String::from("date,best,finalized\n")];
-    let mut import_times = vec![String::from("date\n")];
+    let mut import_times = vec![String::from("duration\n")];
     let mut block_announcements = vec![String::from("date,value\n")];
 
     for line in reader.lines() {
@@ -158,7 +158,6 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
     }
 
-    println!("done with loop {peers:#?}");
     export("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights_v2).unwrap();
     export("block_import_times.csv", import_times).unwrap();
