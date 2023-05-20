@@ -203,13 +203,13 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     .protocols
                     .entry(string_to_protocol(&captures[4]))
                     .or_default()
-                    .bytes_received += captures[5].parse::<usize>().unwrap();
+                    .bytes_sent += captures[5].parse::<usize>().unwrap();
 
                 network_info
                     .protocols
                     .entry(string_to_protocol(&captures[4]))
                     .or_default()
-                    .bytes_received += captures[5].parse::<usize>().unwrap();
+                    .bytes_sent += captures[5].parse::<usize>().unwrap();
             }
             _ => {
                 println!("{captures:?}");
