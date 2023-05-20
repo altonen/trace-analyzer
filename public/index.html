@@ -16,7 +16,7 @@
       <a class="nav-link" data-toggle="tab" href="#tab2" id="tab2-link">General information</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="tab" href="#tab3" id="tab3-link">Peer information</a>
+      <a class="nav-link" data-toggle="tab" href="#tab3" id="tab3-link">Network information</a>
     </li>
   </ul>
 
@@ -48,9 +48,11 @@
 
     </div>
     <div id="tab3" class="tab-pane fade">
-      <h3>Peer information</h3>
-      <p>Number of peers</p>
-      <div id="my_dataviz"></div>
+      <h3>Network information</h3>
+      <h4>Number of peers</h4>
+      <div id="peer_count"></div>
+      <h4>Requests sent</h4>
+      <div id="peer_count"></div>
     </div>
   </div>
 </div>
@@ -88,11 +90,22 @@ var svg = d3.select("#best_and_finalized")
 d3.csv("http://localhost:8000/best-and-finalized",
 
 function(data) {
+    var high = 0;
+    var low = Number.MAX_SAFE_INTEGER;
     var allGroup = ["best", "finalized"]
     var dataReady = allGroup.map( function(grpName) {
       return {
         name: grpName,
         values: data.map(function(d) {
+           let cur = parseInt(d[grpName]);
+
+            if (cur > high) {
+              high = cur;
+            }
+            if (cur < low) {
+              low = cur;
+            }
+
           return {date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName]};
         })
       };
@@ -110,7 +123,7 @@ function(data) {
       .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
 
     var y = d3.scaleLinear()
-      .domain([1040000,1070000])
+      .domain([low * 0.9, high * 1.10])
       .range([height, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
@@ -194,7 +207,7 @@ function(data) {
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
               var y = d3.scaleLinear()
-                .domain([17954730, 17954764])
+                .domain(d3.extent(data, function(d) { return d.value; }))
                 .range([height, 0]);
               svg2.append("g")
                 .call(d3.axisLeft(y));
@@ -284,14 +297,14 @@ console.log("received data", data);
     });
     $(document).ready(function() {
       $('#tab3-link').click(function() {
-        $('#my_dataviz').empty();
+        $('#peer_count').empty();
           // set the dimensions and margins of the graph
           var margin = {top: 10, right: 30, bottom: 30, left: 60},
-              width = 1000 - margin.left - margin.right,
-              height = 600 - margin.top - margin.bottom;
+              width = 800 - margin.left - margin.right,
+              height = 400 - margin.top - margin.bottom;
 
           // append the svg object to the body of the page
-          var svg = d3.select("#my_dataviz")
+          var svg = d3.select("#peer_count")
             .append("svg")
               .attr("width", width + margin.left + margin.right)
               .attr("height", height + margin.top + margin.bottom)
