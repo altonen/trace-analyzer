@@ -29,6 +29,14 @@ app.get('/block-announcements', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/block-imports', (req, res) => {
+  const filePath = path.join(__dirname, './', 'block_import_times.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=block_import_times.csv');
+  res.sendFile(filePath);
+});
+
 app.listen(8000, () => {
   console.log('Server is listening on port 8000');
 });
