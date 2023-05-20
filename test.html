@@ -39,7 +39,6 @@
       <p>This is the content for Tab 3.</p>
     </div>
   </div>
-
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -67,9 +66,10 @@
     });
     $(document).ready(function() {
       $('#tab2-link').click(function() {
+        $('#my_dataviz').empty();
           // set the dimensions and margins of the graph
           var margin = {top: 10, right: 30, bottom: 30, left: 60},
-              width = 600 - margin.left - margin.right,
+              width = 1000 - margin.left - margin.right,
               height = 600 - margin.top - margin.bottom;
 
           // append the svg object to the body of the page
@@ -129,8 +129,5 @@
       });
     });
   </script></head>
-
-<script>
-</script>
 </body>
 </html>
