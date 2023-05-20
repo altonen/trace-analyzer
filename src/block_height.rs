@@ -61,6 +61,19 @@ fn export_to_csv(filename: &str, data: Vec<(String, usize)>) -> Result<(), Box<d
     Ok(())
 }
 
+fn export(filename: &str, data: Vec<String>) -> Result<(), Box<dyn Error>> {
+    let file = File::create(filename)?;
+    let mut writer = BufWriter::new(file);
+
+    for line in data {
+        writer.write_all(line.as_bytes())?;
+    }
+
+    writer.flush()?;
+
+    Ok(())
+}
+
 pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let set = RegexSet::new(&[
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*target=#(\d+) \((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
@@ -82,6 +95,9 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut test_import_times = Vec::new();
     let mut highest = 0u32;
     let mut peers = Vec::new();
+
+    let mut block_heights_v2 = vec![String::from("time,best,finalized\n")];
+    let mut import_times = vec![String::from("time\n")];
 
     for line in reader.lines() {
         let line = line?;
@@ -109,6 +125,11 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     captures[4].parse::<usize>().unwrap(),
                 ));
 
+                block_heights_v2.push(format!(
+                    "{},{},{}\n",
+                    &captures[2], &captures[5], &captures[6],
+                ));
+
                 block_heights.push(BlockHeight {
                     time: captures[2].to_string(),
                     best: captures[5].parse::<usize>().unwrap(),
@@ -130,12 +151,13 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     let time2 = NaiveTime::parse_from_str(&captures[2], "%H:%M:%S%.3f").unwrap();
                     let duration = time2.signed_duration_since(time1);
                     let test = duration.num_milliseconds();
+                    import_times.push(format!("{}\n", test));
                     *block_import_times.entry(test).or_insert(0) += 1;
-                    let test = u32::try_from(test).unwrap();
-                    test_import_times.push(test);
-                    if test > highest {
-                        highest = test;
-                    }
+                    // let test = u32::try_from(test).unwrap();
+                    // test_import_times.push(test);
+                    // if test > highest {
+                    //     highest = test;
+                    // }
                 }
             }
             _ => {
@@ -145,78 +167,80 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     }
 
     println!("done with loop {peers:#?}");
-    export_to_csv("peers.csv", peers);
+    export_to_csv("peers.csv", peers).unwrap();
+    export("block_info.csv", block_heights_v2).unwrap();
+    export("block_import_times.csv", import_times).unwrap();
 
-    let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 1000)).into_drawing_area();
+    // let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 1000)).into_drawing_area();
 
-    root.fill(&WHITE)?;
+    // root.fill(&WHITE)?;
 
-    let mut chart = ChartBuilder::on(&root)
-        .x_label_area_size(35)
-        .y_label_area_size(40)
-        .margin(5)
-        .caption("Block import times", ("sans-serif", 50.0))
-        .build_cartesian_2d(
-            (0u32..highest).into_segmented(),
-            0u32..block_import_times.len() as u32,
-        )?;
+    // let mut chart = ChartBuilder::on(&root)
+    //     .x_label_area_size(35)
+    //     .y_label_area_size(40)
+    //     .margin(5)
+    //     .caption("Block import times", ("sans-serif", 50.0))
+    //     .build_cartesian_2d(
+    //         (0u32..highest).into_segmented(),
+    //         0u32..block_import_times.len() as u32,
+    //     )?;
 
-    chart
-        .configure_mesh()
-        .disable_x_mesh()
-        .y_desc("Count")
-        .x_desc("Milliseconds")
-        .axis_desc_style(("sans-serif", 15))
-        .draw()?;
+    // chart
+    //     .configure_mesh()
+    //     .disable_x_mesh()
+    //     .y_desc("Count")
+    //     .x_desc("Milliseconds")
+    //     .axis_desc_style(("sans-serif", 15))
+    //     .draw()?;
 
-    chart.draw_series(
-        Histogram::vertical(&chart).data(test_import_times.iter().map(|x: &u32| (*x, 1))),
-    )?;
+    // chart.draw_series(
+    //     Histogram::vertical(&chart).data(test_import_times.iter().map(|x: &u32| (*x, 1))),
+    // )?;
 
-    // To avoid the IO failure being ignored silently, we manually call the present function
-    root.present().expect("Unable to write result to file, please make sure 'plotters-doc-data' dir exists under current dir");
-    println!("Result has been saved to {}", OUT_FILE_NAME);
+    // // To avoid the IO failure being ignored silently, we manually call the present function
+    // root.present().expect("Unable to write result to file, please make sure 'plotters-doc-data' dir exists under current dir");
+    // println!("Result has been saved to {}", OUT_FILE_NAME);
 
-    let best = block_heights
-        .iter()
-        .map(|info| info.best)
-        .collect::<Vec<usize>>();
-    let finalized = block_heights
-        .iter()
-        .map(|info| info.finalized)
-        .collect::<Vec<usize>>();
-    let time = block_heights
-        .iter()
-        .enumerate()
-        .map(|(i, _info)| i)
-        .collect::<Vec<usize>>();
-    let block_announcements = block_announcements
-        .iter()
-        .map(|info| info.number)
-        .collect::<Vec<usize>>();
-    let time2 = block_announcements
-        .iter()
-        .enumerate()
-        .map(|(i, _info)| i)
-        .collect::<Vec<usize>>();
-    let mut fg = Figure::new();
-    fg.axes2d()
-        .lines(&time, &best, &[Caption("Best block"), Color("blue")])
-        .lines(
-            &time,
-            &finalized,
-            &[Caption("Finalized block"), Color("red")],
-        );
-    fg.save_to_svg("best_and_finalized.svg", 1000, 1000)
-        .unwrap();
+    // let best = block_heights
+    //     .iter()
+    //     .map(|info| info.best)
+    //     .collect::<Vec<usize>>();
+    // let finalized = block_heights
+    //     .iter()
+    //     .map(|info| info.finalized)
+    //     .collect::<Vec<usize>>();
+    // let time = block_heights
+    //     .iter()
+    //     .enumerate()
+    //     .map(|(i, _info)| i)
+    //     .collect::<Vec<usize>>();
+    // let block_announcements = block_announcements
+    //     .iter()
+    //     .map(|info| info.number)
+    //     .collect::<Vec<usize>>();
+    // let time2 = block_announcements
+    //     .iter()
+    //     .enumerate()
+    //     .map(|(i, _info)| i)
+    //     .collect::<Vec<usize>>();
+    // let mut fg = Figure::new();
+    // fg.axes2d()
+    //     .lines(&time, &best, &[Caption("Best block"), Color("blue")])
+    //     .lines(
+    //         &time,
+    //         &finalized,
+    //         &[Caption("Finalized block"), Color("red")],
+    //     );
+    // fg.save_to_svg("best_and_finalized.svg", 1000, 1000)
+    //     .unwrap();
 
-    let mut fg = Figure::new();
-    fg.axes2d().lines(
-        &time2,
-        &block_announcements,
-        &[Caption("Block announcement"), Color("blue")],
-    );
-    fg.save_to_svg("block_announcements.svg", 1000, 1000)
-        .unwrap();
+    // let mut fg = Figure::new();
+    // fg.axes2d().lines(
+    //     &time2,
+    //     &block_announcements,
+    //     &[Caption("Block announcement"), Color("blue")],
+    // );
+    // fg.save_to_svg("block_announcements.svg", 1000, 1000)
+    //     .unwrap();
     Ok(())
 }
