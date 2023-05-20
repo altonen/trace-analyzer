@@ -93,7 +93,7 @@ function(data) {
       return {
         name: grpName,
         values: data.map(function(d) {
-          return {time: d3.timeParse("%H:%M:%S.%L")(d.time), value: +d[grpName]};
+          return {date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName]};
         })
       };
     });
@@ -103,7 +103,7 @@ function(data) {
       .range(d3.schemeSet2);
 
     var x = d3.scaleTime()
-      .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.time); }))
+      .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.date); }))
       .range([0, width]);
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
@@ -116,7 +116,7 @@ function(data) {
       .call(d3.axisLeft(y));
 
     var line = d3.line()
-      .x(function(d) { return x(+d.time) })
+      .x(function(d) { return x(+d.date) })
       .y(function(d) { return y(+d.value) })
     svg.selectAll("myLines")
       .data(dataReady)
@@ -138,7 +138,7 @@ function(data) {
       .enter()
       .append("circle")
         .attr("cx", function(d) {
-            return x(d3.timeParse("%H:%M:%S.%L")(d.time))
+            return x(d3.timeParse("%H:%M:%S.%L")(d.date))
         })
         .attr("cy", function(d) { return y(d.value) } )
         .attr("r", 5)
@@ -151,7 +151,7 @@ function(data) {
         .append('g')
         .append("text")
           .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-          .attr("transform", function(d) { return "translate(" + x(d.value.time) + "," + y(d.value.value) + ")"; })
+          .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
           .attr("x", 20)
           .attr("y", function(d) {
               if (d.name == "best") {
