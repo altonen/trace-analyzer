@@ -47,7 +47,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Pre-validating received.*with number (\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Header ([^\s]+) has (\d+) logs",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*New block request for ([a-zA-Z0-9]+).*Number\((\d+)\).*",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*New (gap )?block request for ([a-zA-Z0-9]+).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*BlockResponse 0 from ([a-zA-Z0-9]+).*\((\d+)\.\.(\d+)\).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected.*",
@@ -113,9 +113,13 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 }
             }
             4 => {
-                sent_requests.push(format!("{},{}\n", &captures[2], &captures[3]));
-                let mut entry: &mut PeerInfo =
-                    peer_info.entry(captures[3].to_string()).or_default();
+                let peer = match captures.get(3) {
+                    Some(peer) => peer.as_str().to_owned(),
+                    None => captures[4].to_string(),
+                };
+
+                sent_requests.push(format!("{},{}\n", &captures[2], peer));
+                let mut entry: &mut PeerInfo = peer_info.entry(peer).or_default();
                 entry.sent_requests += 1;
                 network_info.sent_requests += 1;
             }
