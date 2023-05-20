@@ -92,11 +92,11 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut pending_block_imports = HashMap::new();
     let mut block_import_times = HashMap::new();
     let mut highest = 0u32;
-    let mut peers = Vec::new();
 
-    let mut block_heights_v2 = vec![String::from("time,best,finalized\n")];
-    let mut import_times = vec![String::from("time\n")];
-    let mut block_announcements = vec![String::from("time,block\n")];
+    let mut peers = vec![String::from("date,value\n")];
+    let mut block_heights_v2 = vec![String::from("date,best,finalized\n")];
+    let mut import_times = vec![String::from("date\n")];
+    let mut block_announcements = vec![String::from("date,value\n")];
 
     for line in reader.lines() {
         let line = line?;
@@ -119,11 +119,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
         match index {
             0 => {
-                peers.push((
-                    captures[2].to_string(),
-                    captures[4].parse::<usize>().unwrap(),
-                ));
-
+                peers.push(format!("{},{}\n", &captures[2], &captures[4]));
                 block_heights_v2.push(format!(
                     "{},{},{}\n",
                     &captures[2], &captures[5], &captures[6],
@@ -163,7 +159,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     }
 
     println!("done with loop {peers:#?}");
-    export_to_csv("peers.csv", peers).unwrap();
+    export("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights_v2).unwrap();
     export("block_import_times.csv", import_times).unwrap();
     export("block_announcements.csv", block_announcements).unwrap();
