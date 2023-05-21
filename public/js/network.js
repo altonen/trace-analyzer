@@ -2,7 +2,7 @@
 function draw_peer_graph() {
     var margin = { top: 30, right: 30, bottom: 50, left: 60 };
     var width  = 800 - margin.left - margin.right;
-    var height = 600 - margin.top - margin.bottom;
+    var height = 350 - margin.top - margin.bottom;
 
     var svg = d3.select("#peer_count")
         .append("svg")
@@ -20,7 +20,7 @@ function draw_peer_graph() {
                 .domain(d3.extent(data, function(d) { return d.date; }))
                 .range([0, width]);
             var y = d3.scaleLinear()
-                .domain([0, 50])
+                .domain([0, 45])
                 .range([height, 0]);
 
             svg.append("g")
@@ -500,17 +500,27 @@ function draw_connectivity_donut() {
 
     var radius = Math.min(width, height) / 2 - margin;
 
-    var svg = d3.select("#connectivity")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
     d3.json("http://localhost:8000/connectivity", function(data) {
+        var total = 0;
+        for (var value in data) {
+            total += data[value];
+        }
+
+        if (total === 0) {
+            $('#connectivity_info').show();
+            return;
+        }
+
         var color = d3.scaleOrdinal()
             .domain(["failed_to_reach", "disconnected", "unique_dials", "unique_conns"])
             .range(d3.schemeDark2);
+
+        var svg = d3.select("#connectivity")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
         var pie = d3.pie()
             .sort(null)
@@ -571,8 +581,6 @@ function draw_connectivity_donut() {
 
 $(document).ready(function() {
     $('#tab3-link').click(function() {
-        console.log('here');
-
         $('#peer_count').empty();
         $('#bytes_sent').empty();
         $('#bytes_received').empty();
