@@ -61,6 +61,13 @@ app.get('/received-bytes', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/network.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'network.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
 app.listen(8000, () => {
   console.log('Server is listening on port 8000');
 });
