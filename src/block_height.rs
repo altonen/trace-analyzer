@@ -73,6 +73,13 @@ struct ConnectionRole {
     listener: usize,
 }
 
+#[derive(Debug, Default, Serialize)]
+struct AddressType {
+    dns: usize,
+    ip4: usize,
+    ip6: usize,
+}
+
 fn string_to_protocol(string: &str) -> String {
     if string.contains("grandpa") {
         return String::from("grandpa");
@@ -109,7 +116,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API.*Notification\(PeerId.*([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes"#,
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Dialing[^"]+\"([a-zA-Z0-9]+)"#,
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+)"#,
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\(\d+\), ([a-zA-Z]+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\((\d+)\), ([a-zA-Z]+).*address: .*(dns|ip4|ip6)",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+)"#,
     ])
     .unwrap();
@@ -124,6 +131,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut conn_info = ConnectionInfo::default();
 
     let mut roles = ConnectionRole::default();
+    let mut addresses = AddressType::default();
     let mut pending_block_imports = HashMap::new();
     let mut peers = vec![String::from("date,value\n")];
     let mut block_heights = vec![String::from("date,best,finalized\n")];
@@ -351,12 +359,19 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 conn_info.failed_to_reach += 1;
             }
             13 => {
-                match &captures[4] {
+                match &captures[5] {
                     "Dialer" => roles.dialer += 1,
                     "Listener" => roles.listener += 1,
                     _ => {
                         println!("unrecognized role {:?}", &captures[4]);
                     }
+                }
+
+                match &captures[6] {
+                    "dns" => addresses.dns += 1,
+                    "ip4" => addresses.ip4 += 1,
+                    "ip6" => addresses.ip6 += 1,
+                    _ => {}
                 }
 
                 peer_info
@@ -479,6 +494,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
     let json = serde_json::to_string(&roles).unwrap();
     let file = File::create("roles.json")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(json.as_bytes())?;
+    writer.flush()?;
+
+    let json = serde_json::to_string(&addresses).unwrap();
+    let file = File::create("addresses.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;

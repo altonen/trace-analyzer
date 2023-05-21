@@ -93,6 +93,14 @@ app.get('/roles', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/addresses', (req, res) => {
+  const filePath = path.join(__dirname, './', 'addresses.json');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=addresses.json');
+  res.sendFile(filePath);
+});
+
 app.get('/network.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'network.js');
 
