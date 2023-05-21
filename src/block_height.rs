@@ -67,6 +67,12 @@ struct NetworkInfo {
     protocols: HashMap<String, ProtocolInfo>,
 }
 
+#[derive(Debug, Default, Serialize)]
+struct ConnectionRole {
+    dialer: usize,
+    listener: usize,
+}
+
 fn string_to_protocol(string: &str) -> String {
     if string.contains("grandpa") {
         return String::from("grandpa");
@@ -93,18 +99,18 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*\((\d+) peers\).*best: #(\d+).*finalized #(\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Pre-validating received.*with number (\d+)",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Header ([^\s]+) has (\d+) logs",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*New (gap )?block request for ([a-zA-Z0-9]+).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*BlockResponse 0 from ([a-zA-Z0-9]+).*\((\d+)\.\.(\d+)\).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected.*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\).*Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes.*",
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API.*Notification\(PeerId.*([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes.*"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Block imported successfully Some\(\d+\) \(([^\s]+)\)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*New (gap )?block request for ([a-zA-Z0-9]+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*BlockResponse 0 from ([a-zA-Z0-9]+).*\((\d+)\.\.(\d+)\)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\).*Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API.*Notification\(PeerId.*([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes"#,
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Dialing[^"]+\"([a-zA-Z0-9]+)"#,
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+).*"#,
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+).*",
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+).*"#,
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+)"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\(\d+\), ([a-zA-Z]+)",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+)"#,
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -117,6 +123,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let mut network_info = NetworkInfo::default();
     let mut conn_info = ConnectionInfo::default();
 
+    let mut roles = ConnectionRole::default();
     let mut pending_block_imports = HashMap::new();
     let mut peers = vec![String::from("date,value\n")];
     let mut block_heights = vec![String::from("date,best,finalized\n")];
@@ -333,8 +340,6 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
             }
             11 => {
                 conn_info.dialed += 1;
-                // println!("{line}");
-                // println!("{:?}\n", captures);
                 conn_info.unique_dials.insert(captures[3].to_string());
                 peer_info.entry(captures[3].to_string()).or_default().dialed += 1;
             }
@@ -346,6 +351,14 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 conn_info.failed_to_reach += 1;
             }
             13 => {
+                match &captures[4] {
+                    "Dialer" => roles.dialer += 1,
+                    "Listener" => roles.listener += 1,
+                    _ => {
+                        println!("unrecognized role {:?}", &captures[4]);
+                    }
+                }
+
                 peer_info
                     .entry(captures[3].to_string())
                     .or_default()
@@ -460,6 +473,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     .unwrap();
 
     let file = File::create("connectivity.json")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(json.as_bytes())?;
+    writer.flush()?;
+
+    let json = serde_json::to_string(&roles).unwrap();
+    let file = File::create("roles.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
