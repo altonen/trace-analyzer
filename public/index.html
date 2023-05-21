@@ -16,8 +16,16 @@
     <li class="nav-item">
       <a class="nav-link" data-bs-toggle="tab" href="#tab2" id="tab2-link">General information</a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="tab" href="#tab3" id="tab3-link">Network information</a>
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Network</a>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab3" id="tab3-link">Connectivity</a></li>
+        <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab4" id="tab4-link">Data usage</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#">Syncing</a></li>
+        <li><a class="dropdown-item" href="#">GRANDPA</a></li>
+        <li><a class="dropdown-item" href="#">Transactions</a></li>
+      </ul>
     </li>
   </ul>
 
@@ -47,13 +55,22 @@
 
     </div>
     <div id="tab3" class="tab-pane fade">
-      <h3>Network information</h3>
+      <h3>Connectivity information</h3>
       <span class="badge text-bg-warning">Low peer count</span>
 
       <hr>
       <h4>Number of peers</h4>
       <div id="peer_count"></div>
 
+      <hr>
+      <h4>Connectivity</h4>
+      <div id="connectivity">
+      </div>
+
+    </div>
+
+    <div id="tab4" class="tab-pane fade">
+      <h3>Data usage</h3>
       <hr>
       <h4>Bytes sent</h4>
       <div class="alert alert-info" role="alert" id="bytes_sent_info" style="display: none">
@@ -84,11 +101,6 @@
         Did not receive any messages.
       </div>
       <div id="messages_received">
-      </div>
-
-      <hr>
-      <h4>Connectivity</h4>
-      <div id="connectivity">
       </div>
 
     </div>

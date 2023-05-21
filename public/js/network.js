@@ -571,6 +571,8 @@ function draw_connectivity_donut() {
 
 $(document).ready(function() {
     $('#tab3-link').click(function() {
+        console.log('here');
+
         $('#peer_count').empty();
         $('#bytes_sent').empty();
         $('#bytes_received').empty();
