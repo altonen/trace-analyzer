@@ -35,10 +35,24 @@ struct ProtocolInfo {
 struct PeerInfo {
     sent_requests: usize,
     received_responses: usize,
-    disconnected: usize,
-    connected: usize,
+    dialed: usize,
+    failed_to_reach: usize,
+    sync_connected: usize,
+    sync_disconnected: usize,
     evicted: usize,
+    connected: usize,
+    disconnected: usize,
     protocols: HashMap<String, ProtocolInfo>,
+}
+
+#[derive(Debug, Default)]
+struct ConnectionInfo {
+    unique_dials: HashSet<String>,
+    unique_conns: HashSet<String>,
+    dialed: usize,
+    failed_to_reach: usize,
+    connected: usize,
+    disconnected: usize,
 }
 
 #[derive(Debug, Default)]
@@ -86,6 +100,10 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\) => Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes.*",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API => Notification\(PeerId\(\"([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes.*"#,
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Dialing\(PeerId\(\"([a-zA-Z0-9]+).*"#,
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Failed to reach PeerId\(\"([a-zA-Z0-9]+).*"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Connected\(([a-zA-Z0-9]+).*",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Disconnected\(PeerId\(\"([a-zA-Z0-9]+).*"#,
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -96,6 +114,8 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
 
     let mut peer_info = HashMap::new();
     let mut network_info = NetworkInfo::default();
+    let mut conn_info = ConnectionInfo::default();
+
     let mut pending_block_imports = HashMap::new();
     let mut peers = vec![String::from("date,value\n")];
     let mut block_heights = vec![String::from("date,best,finalized\n")];
@@ -142,7 +162,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
             NaiveTime::parse_from_str(current_time.as_ref().unwrap(), "%H:%M:%S%.3f").unwrap();
         let time2 = NaiveTime::parse_from_str(&captures[2], "%H:%M:%S%.3f").unwrap();
 
-        if time2.signed_duration_since(time1).num_milliseconds() > 10_000 {
+        if time2.signed_duration_since(time1).num_milliseconds() > 30_000 {
             if !current_protocol_info.is_empty() {
                 protocol_send_byte_usage.push(format!(
                     "{},{},{},{}\n",
@@ -251,13 +271,13 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
             6 => {
                 let mut entry: &mut PeerInfo =
                     peer_info.entry(captures[3].to_string()).or_default();
-                entry.connected += 1;
+                entry.sync_connected += 1;
                 network_info.connected += 1;
             }
             7 => {
                 let mut entry: &mut PeerInfo =
                     peer_info.entry(captures[3].to_string()).or_default();
-                entry.connected += 1;
+                entry.sync_disconnected += 1;
                 network_info.disconnected += 1;
             }
             8 => {
@@ -310,6 +330,33 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                 entry.bytes_sent += captures[5].parse::<usize>().unwrap();
                 entry.messages_sent += 1;
             }
+            11 => {
+                conn_info.dialed += 1;
+                conn_info.unique_dials.insert(captures[3].to_string());
+                peer_info.entry(captures[3].to_string()).or_default().dialed += 1;
+            }
+            12 => {
+                peer_info
+                    .entry(captures[3].to_string())
+                    .or_default()
+                    .failed_to_reach += 1;
+                conn_info.failed_to_reach += 1;
+            }
+            13 => {
+                peer_info
+                    .entry(captures[3].to_string())
+                    .or_default()
+                    .connected += 1;
+                conn_info.unique_conns.insert(captures[3].to_string());
+                conn_info.connected += 1;
+            }
+            14 => {
+                peer_info
+                    .entry(captures[3].to_string())
+                    .or_default()
+                    .disconnected += 1;
+                conn_info.disconnected += 1;
+            }
             _ => {
                 println!("{captures:?}");
             }
@@ -325,8 +372,15 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     export("messages_received.csv", protocol_recv_msg_usage).unwrap();
     export("messages_sent.csv", protocol_send_msg_usage).unwrap();
 
-    // println!("{:#?}", peer_info);
     println!("{:#?}", network_info);
+    println!("dialed {}, failed to reach {}, connected {}, disconnected {}, unique dials {}, unique conns {}",
+        conn_info.dialed,
+        conn_info.failed_to_reach,
+        conn_info.connected,
+        conn_info.disconnected,
+        conn_info.unique_dials.len(),
+        conn_info.unique_conns.len(),
+    );
 
     Ok(())
 }
