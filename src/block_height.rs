@@ -2,6 +2,7 @@ use chrono::NaiveTime;
 use gnuplot::{Caption, Color, Figure};
 use plotters::prelude::*;
 use regex::{Regex, RegexSet};
+use serde::Serialize;
 
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
@@ -98,12 +99,12 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Connected ([a-zA-Z0-9]+).*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*(12[a-zA-Z0-9]+) disconnected.*",
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*evict peer ([a-zA-Z0-9]+).*",
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\) => Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes.*",
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API => Notification\(PeerId\(\"([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes.*"#,
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Dialing\(PeerId\(\"([a-zA-Z0-9]+).*"#,
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Failed to reach PeerId\(\"([a-zA-Z0-9]+).*"#,
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Connected\(([a-zA-Z0-9]+).*",
-        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p => Disconnected\(PeerId\(\"([a-zA-Z0-9]+).*"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(ConnectionId\(\d+\)\).*Notification\(([a-zA-Z0-9]+), SetId\((\d+)\), (\d+) bytes.*",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API.*Notification\(PeerId.*([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes.*"#,
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Dialing[^"]+\"([a-zA-Z0-9]+)"#,
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+).*"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+).*",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+).*"#,
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -162,7 +163,7 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
             NaiveTime::parse_from_str(current_time.as_ref().unwrap(), "%H:%M:%S%.3f").unwrap();
         let time2 = NaiveTime::parse_from_str(&captures[2], "%H:%M:%S%.3f").unwrap();
 
-        if time2.signed_duration_since(time1).num_milliseconds() > 30_000 {
+        if time2.signed_duration_since(time1).num_milliseconds() > 15_000 {
             if !current_protocol_info.is_empty() {
                 protocol_send_byte_usage.push(format!(
                     "{},{},{},{}\n",
@@ -332,6 +333,8 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
             }
             11 => {
                 conn_info.dialed += 1;
+                // println!("{line}");
+                // println!("{:?}\n", captures);
                 conn_info.unique_dials.insert(captures[3].to_string());
                 peer_info.entry(captures[3].to_string()).or_default().dialed += 1;
             }
@@ -363,6 +366,64 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         }
     }
 
+    if !current_protocol_info.is_empty() {
+        protocol_send_byte_usage.push(format!(
+            "{},{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            current_protocol_info
+                .get("block-announces")
+                .map_or(0, |info| info.bytes_sent),
+            current_protocol_info
+                .get("grandpa")
+                .map_or(0, |info| info.bytes_sent),
+            current_protocol_info
+                .get("transactions")
+                .map_or(0, |info| info.bytes_sent),
+        ));
+
+        protocol_send_msg_usage.push(format!(
+            "{},{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            current_protocol_info
+                .get("block-announces")
+                .map_or(0, |info| info.messages_sent),
+            current_protocol_info
+                .get("grandpa")
+                .map_or(0, |info| info.messages_sent),
+            current_protocol_info
+                .get("transactions")
+                .map_or(0, |info| info.messages_sent),
+        ));
+
+        protocol_recv_byte_usage.push(format!(
+            "{},{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            current_protocol_info
+                .get("block-announces")
+                .map_or(0, |info| info.bytes_received),
+            current_protocol_info
+                .get("grandpa")
+                .map_or(0, |info| info.bytes_received),
+            current_protocol_info
+                .get("transactions")
+                .map_or(0, |info| info.bytes_received),
+        ));
+
+        protocol_recv_msg_usage.push(format!(
+            "{},{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            current_protocol_info
+                .get("block-announces")
+                .map_or(0, |info| info.messages_received),
+            current_protocol_info
+                .get("grandpa")
+                .map_or(0, |info| info.messages_received),
+            current_protocol_info
+                .get("transactions")
+                .map_or(0, |info| info.messages_received),
+        ));
+    }
+
     export("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights).unwrap();
     export("block_import_times.csv", import_times).unwrap();
@@ -381,6 +442,27 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         conn_info.unique_dials.len(),
         conn_info.unique_conns.len(),
     );
+
+    #[derive(Debug, Default, Serialize)]
+    struct JsonConnectionInfo {
+        unique_dials: usize,
+        unique_connections: usize,
+        failed_to_reach: usize,
+        disconnected: usize,
+    }
+
+    let json = serde_json::to_string(&JsonConnectionInfo {
+        unique_dials: conn_info.unique_dials.len(),
+        unique_connections: conn_info.unique_conns.len(),
+        failed_to_reach: conn_info.failed_to_reach,
+        disconnected: conn_info.disconnected,
+    })
+    .unwrap();
+
+    let file = File::create("connectivity.json")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(json.as_bytes())?;
+    writer.flush()?;
 
     Ok(())
 }
