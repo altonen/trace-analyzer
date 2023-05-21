@@ -61,6 +61,22 @@ app.get('/received-bytes', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sent-messages', (req, res) => {
+  const filePath = path.join(__dirname, './', 'messages_sent.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=messages_sent.csv');
+  res.sendFile(filePath);
+});
+
+app.get('/received-messages', (req, res) => {
+  const filePath = path.join(__dirname, './', 'messages_received.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=messages_received.csv');
+  res.sendFile(filePath);
+});
+
 app.get('/connectivity', (req, res) => {
   const filePath = path.join(__dirname, './', 'connectivity.json');
 
