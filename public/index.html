@@ -30,43 +30,64 @@
       <span class="badge badge-danger" role="alert" >Best block lagging</span>
       <span class="badge badge-danger" role="alert" >Finality lagging</span>
       <span class="badge badge-warning" role="alert" >Slow block import</span>
-      <br><br>
 
+      <hr>
       <h4>Best and finalized blocks</p>
       <div id="best_and_finalized"></div>
 
+      <hr>
       <h4>Received block announcements, graph for block height</h4>
       <div id="block_announcements"></div>
 
+      <hr>
       <h4>Block import times, inverted</h4>
       <div id="block_import"></div>
-
-      <h4>Received finality notifications, graph for block height</h4>
-      <div id="finality_notifications"></div>
 
     </div>
     <div id="tab3" class="tab-pane fade">
       <h3>Network information</h3>
       <span class="badge badge-warning" role="alert" >Low peer count</span>
-      <br><br>
 
+      <hr>
       <h4>Number of peers</h4>
       <div id="peer_count"></div>
 
+      <hr>
       <h4>Bytes sent</h4>
-      <div id="bytes_sent"></div>
+      <div class="alert alert-info" role="alert" id="bytes_sent_info" style="display: none">
+        Did not send any bytes.
+      </div>
+      <div id="bytes_sent">
+      </div>
 
+      <hr>
       <h4>Bytes received</h4>
-      <div id="bytes_received"></div>
+      <div class="alert alert-info" role="alert" id="bytes_received_info" style="display: none">
+        Did not receive any bytes.
+      </div>
+      <div id="bytes_received">
+      </div>
 
+      <hr>
       <h4>Messages sent</h4>
-      <div id="messages_sent"></div>
+      <div class="alert alert-info" role="alert" id="messages_sent_info" style="display: none">
+        Did not send any messages.
+      </div>
+      <div id="messages_sent">
+      </div>
 
+      <hr>
       <h4>Messages received</h4>
-      <div id="messages_received"></div>
+      <div class="alert alert-info" role="alert" id="messages_received_info" style="display: none">
+        Did not receive any messages.
+      </div>
+      <div id="messages_received">
+      </div>
 
+      <hr>
       <h4>Connectivity</h4>
-      <div id="connectivity"></div>
+      <div id="connectivity">
+      </div>
 
     </div>
   </div>

@@ -57,18 +57,12 @@ function draw_sent_bytes() {
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
-    var svg = d3.select("#bytes_sent")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")");
-
     d3.csv("http://localhost:8000/sent-bytes", function(data) {
         var high = 0;
         var low = Number.MAX_SAFE_INTEGER;
         var allGroup = ["block-announces", "grandpa", "transactions"]
+        var total = 0;
+
         var dataReady = allGroup.map( function(grpName) {
             return {
                 name: grpName,
@@ -81,11 +75,26 @@ function draw_sent_bytes() {
                     if (cur < low) {
                         low = cur;
                     }
+                    total += +d[grpName];
 
                     return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
                 })
             };
         });
+
+        // if no bytes were sent, show an info box instead
+        if (total === 0) {
+            $('#bytes_sent_info').show();
+            return;
+        }
+
+        var svg = d3.select("#bytes_sent")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
 
         var myColor = d3.scaleOrdinal()
             .domain(allGroup)
@@ -161,18 +170,12 @@ function draw_sent_messages() {
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
-    var svg = d3.select("#messages_sent")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")");
-
     d3.csv("http://localhost:8000/sent-messages", function(data) {
         var high = 0;
         var low = Number.MAX_SAFE_INTEGER;
         var allGroup = ["block-announces", "grandpa", "transactions"]
+        var total = 0;
+
         var dataReady = allGroup.map( function(grpName) {
             return {
                 name: grpName,
@@ -185,11 +188,25 @@ function draw_sent_messages() {
                     if (cur < low) {
                         low = cur;
                     }
+                    total += +d[grpName];
 
                     return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
                 })
             };
         });
+
+        if (total === 0) {
+            $('#messages_sent_info').show();
+            return;
+        }
+
+        var svg = d3.select("#messages_sent")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
 
         var myColor = d3.scaleOrdinal()
             .domain(allGroup)
@@ -265,17 +282,12 @@ function draw_received_bytes() {
     var width = 1000 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
-    var svg = d3.select("#bytes_received")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
     d3.csv("http://localhost:8000/received-bytes", function(data) {
         var high = 0;
         var low = Number.MAX_SAFE_INTEGER;
         var allGroup = ["block-announces", "grandpa", "transactions"]
+        var total = 0;
+
         var dataReady = allGroup.map(function(grpName) {
             return {
                 name: grpName,
@@ -288,11 +300,24 @@ function draw_received_bytes() {
                     if (cur < low) {
                         low = cur;
                     }
+                    total += +d[grpName];
 
                     return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
                 })
             };
         });
+
+        if (total === 0) {
+            $('#bytes_received_info').show();
+            return;
+        }
+
+        var svg = d3.select("#bytes_received")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         var myColor = d3.scaleOrdinal()
             .domain(allGroup)
@@ -376,6 +401,8 @@ function draw_received_messages() {
         var high = 0;
         var low = Number.MAX_SAFE_INTEGER;
         var allGroup = ["block-announces", "grandpa", "transactions"]
+        var total = 0;
+
         var dataReady = allGroup.map(function(grpName) {
             return {
                 name: grpName,
@@ -388,11 +415,17 @@ function draw_received_messages() {
                     if (cur < low) {
                         low = cur;
                     }
+                    total += +d[grpName];
 
                     return { date: d3.timeParse("%H:%M:%S.%L")(d.date), value: +d[grpName] };
                 })
             };
         });
+
+        if (total === 0) {
+            $('#messages_received_info').show();
+            return;
+        }
 
         var myColor = d3.scaleOrdinal()
             .domain(allGroup)
