@@ -61,6 +61,14 @@ app.get('/received-bytes', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/connectivity', (req, res) => {
+  const filePath = path.join(__dirname, './', 'connectivity.json');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=connectivity.json');
+  res.sendFile(filePath);
+});
+
 app.get('/network.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'network.js');
 
