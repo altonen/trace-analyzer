@@ -80,6 +80,12 @@ struct AddressType {
     ip6: usize,
 }
 
+#[derive(Debug, Default)]
+struct SubstreamOpenInfo {
+    success: usize,
+    failure: usize,
+}
+
 fn string_to_protocol(string: &str) -> String {
     if string.contains("grandpa") {
         return String::from("grandpa");
@@ -118,6 +124,8 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+)"#,
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\((\d+)\), ([a-zA-Z]+).*address: .*(dns|ip4|ip6)",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+)"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultOk\(SetId\((\d+)\)\)",
+        r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(PeerId[^"]+\"([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultErr\(SetId\((\d+)\)\)"#,
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -146,6 +154,10 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
         vec![String::from("date,block-announces,grandpa,transactions\n")];
     let mut protocol_send_msg_usage =
         vec![String::from("date,block-announces,grandpa,transactions\n")];
+
+    let mut block_announce_substream = SubstreamOpenInfo::default();
+    let mut transaction_substream = SubstreamOpenInfo::default();
+    let mut grandpa_substream = SubstreamOpenInfo::default();
 
     let mut current_time = None;
     let mut current_protocol_info: HashMap<String, ProtocolInfo> = HashMap::new();
@@ -388,6 +400,18 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
                     .disconnected += 1;
                 conn_info.disconnected += 1;
             }
+            15 => match &captures[5] {
+                "0" => block_announce_substream.success += 1,
+                "1" => transaction_substream.success += 1,
+                "2" => grandpa_substream.success += 1,
+                _ => {}
+            },
+            16 => match &captures[5] {
+                "0" => block_announce_substream.failure += 1,
+                "1" => transaction_substream.failure += 1,
+                "2" => grandpa_substream.failure += 1,
+                _ => {}
+            },
             _ => {
                 println!("{captures:?}");
             }
@@ -502,6 +526,20 @@ pub fn analyze_block_height(reader: BufReader<File>) -> Result<(), Box<dyn Error
     let file = File::create("addresses.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
+    writer.flush()?;
+
+    let mut substream_info = format!(
+        "group,success,failure\nblock-announces,{},{}\ntransactions,{},{}\ngrandpa,{},{}\n",
+        block_announce_substream.success,
+        block_announce_substream.failure,
+        transaction_substream.success,
+        transaction_substream.failure,
+        grandpa_substream.success,
+        grandpa_substream.failure,
+    );
+    let file = File::create("substreams.csv")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(substream_info.as_bytes())?;
     writer.flush()?;
 
     Ok(())

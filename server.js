@@ -96,8 +96,16 @@ app.get('/roles', (req, res) => {
 app.get('/addresses', (req, res) => {
   const filePath = path.join(__dirname, './', 'addresses.json');
 
-  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Type', 'text/json');
   res.setHeader('Content-Disposition', 'attachment; filename=addresses.json');
+  res.sendFile(filePath);
+});
+
+app.get('/substreams', (req, res) => {
+  const filePath = path.join(__dirname, './', 'substreams.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=substreams.csv');
   res.sendFile(filePath);
 });
 
