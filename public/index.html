@@ -37,16 +37,19 @@
     <div id="tab2" class="tab-pane fade">
       <h3>General information</h3>
 
-      <span class="badge text-bg-danger">Best block lagging</span>
-      <span class="badge text-bg-danger">Finality lagging</span>
-      <span class="badge text-bg-warning">Slow block import</span>
+      <span class="badge text-bg-danger" style="display: none" id="best_block">Best block lagging</span>
+      <span class="badge text-bg-danger" style="display: none" id="finalized_block">Finality lagging</span>
+      <span class="badge text-bg-warning" style="display: none" id="slow_block_import">Slow block import</span>
 
       <hr>
       <h4>Best and finalized blocks</p>
       <div id="best_and_finalized"></div>
 
       <hr>
-      <h4>Received block announcements, graph for block height</h4>
+      <h4>Received block announcements</h4>
+      <div class="alert alert-info" role="alert" id="block_announcement_info" style="display: none">
+        Did not receive any block announcements.
+      </div>
       <div id="block_announcements"></div>
 
       <hr>
@@ -56,7 +59,7 @@
     </div>
     <div id="tab3" class="tab-pane fade">
       <h3>Connectivity information</h3>
-      <span class="badge text-bg-warning">Low peer count</span>
+      <span class="badge text-bg-warning" style="display: none" id="peer_count_warn">Low peer count</span>
 
       <hr>
       <h4>Number of peers</h4>

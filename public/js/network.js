@@ -16,6 +16,17 @@ function draw_peer_graph() {
             return { date : d3.timeParse("%H:%M:%S.%L")(d.date), value : d.value }
         },
         function(data) {
+            let peer_counts = 0;
+            for (var value in data) {
+                if (data[value].value !== undefined) {
+                    peer_counts += parseInt(data[value].value);
+                }
+            }
+
+            if (peer_counts / data.length < 25.0) {
+                $("#peer_count_warn").show();
+            }
+
             var x = d3.scaleTime()
                 .domain(d3.extent(data, function(d) { return d.date; }))
                 .range([0, width]);
@@ -507,6 +518,7 @@ function draw_connectivity_donut() {
         }
 
         if (total === 0) {
+            console.log(total);
             $('#connectivity_info').show();
             return;
         }
