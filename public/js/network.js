@@ -505,9 +505,9 @@ function draw_received_messages() {
 }
 
 function draw_connectivity_donut() {
-    var width  = 600
-    var height = 300;
-    var margin = 50;
+    var width  = 500
+    var height = 200;
+    var margin = 10;
 
     var radius = Math.min(width, height) / 2 - margin;
 
@@ -592,9 +592,9 @@ function draw_connectivity_donut() {
 }
 
 function draw_roles_donut() {
-    var width  = 600
-    var height = 300;
-    var margin = 50;
+    var width  = 500
+    var height = 200;
+    var margin = 10;
 
     var radius = Math.min(width, height) / 2 - margin;
 
@@ -677,9 +677,9 @@ function draw_roles_donut() {
 }
 
 function draw_address_donut() {
-    var width  = 600
-    var height = 300;
-    var margin = 50;
+    var width  = 300
+    var height = 200;
+    var margin = 20;
 
     var radius = Math.min(width, height) / 2 - margin;
 
