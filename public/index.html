@@ -306,54 +306,6 @@ d3.csv("http://localhost:8000/block-imports", function(data) {
 
     });
 </script>
-  </head>
-<script>
-
-    function uploadFile() {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-
-      const fileSize = file.size;
-      const chunkSize = 1024 * 1024; // 1MB chunk size (adjust as needed)
-      let offset = 0;
-
-      function readChunk() {
-        const reader = new FileReader();
-        const blob = file.slice(offset, offset + chunkSize);
-
-        reader.onload = function (e) {
-          if (e.target.readyState === FileReader.DONE) {
-            const chunkData = e.target.result;
-
-            // Send the chunk data to the server using AJAX
-            uploadChunk(chunkData, offset, fileSize);
-
-            offset += chunkData.byteLength;
-
-            if (offset < fileSize) {
-              // Continue reading the next chunk
-              readChunk();
-            } else {
-              // All chunks uploaded
-              document.getElementById('uploadStatus').textContent = 'File uploaded successfully.';
-            }
-          }
-        };
-
-        reader.readAsArrayBuffer(blob);
-      }
-
-      readChunk();
-    }
-
-    function uploadChunk(chunkData, offset, fileSize) {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/upload', true);
-      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-      xhr.setRequestHeader('X-Chunk-Offset', offset);
-      xhr.setRequestHeader('X-File-Size', fileSize);
-      xhr.send(chunkData);
-    }
-  </script>
+</head>
 </body>
 </html>
