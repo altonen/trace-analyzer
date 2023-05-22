@@ -56,10 +56,59 @@ function draw_connectivity_bars() {
     })
 }
 
+function draw_block_announcements() {
+    var margin = {top: 10, right: 30, bottom: 30, left: 80},
+    width = 800 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+    d3.csv("http://localhost:8000/block-announcements",
+        function(d){
+            return { date : d3.timeParse("%H:%M:%S.%L")(d.date), value : d.value }
+        },
+        function(data) {
+            if (data.length === 0) {
+                $("#block_announcement_info").show();
+                return;
+            }
+
+            var svg = d3.select("#block_announcements")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var x = d3.scaleTime()
+                .domain(d3.extent(data, function(d) { return d.date; }))
+                .range([ 0, width ]);
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
+
+            var y = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d.value; }))
+                .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-width", 1.5)
+                .attr("d", d3.line()
+                    .x(function(d) { return x(d.date) })
+                    .y(function(d) { return y(d.value) })
+                )
+    })
+}
+
 $(document).ready(function() {
     $('#tab5-link').click(function() {
         $('#sync_connectivity').empty();
+        $('#block_announcements').empty();
 
         draw_connectivity_bars();
+        draw_block_announcements();
     });
 });

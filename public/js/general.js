@@ -138,56 +138,6 @@ function draw_block_height() {
     });
 }
 
-function draw_block_announcements() {
-    var margin = {top: 10, right: 30, bottom: 30, left: 80},
-    width = 800 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-
-    d3.csv("http://localhost:8000/block-announcements",
-        function(d){
-            return { date : d3.timeParse("%H:%M:%S.%L")(d.date), value : d.value }
-        },
-        function(data) {
-            if (data.length === 0) {
-                $("#block_announcement_info").show();
-                return;
-            }
-
-            var svg = d3.select("#block_announcements")
-                .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-            // Add X axis --> it is a date format
-            var x = d3.scaleTime()
-                .domain(d3.extent(data, function(d) { return d.date; }))
-                .range([ 0, width ]);
-            svg.append("g")
-                .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(x));
-
-            // Add Y axis
-            var y = d3.scaleLinear()
-                .domain(d3.extent(data, function(d) { return d.value; }))
-                .range([height, 0]);
-            svg.append("g")
-                .call(d3.axisLeft(y));
-
-            // Add the line
-            svg.append("path")
-                .datum(data)
-                .attr("fill", "none")
-                .attr("stroke", "steelblue")
-                .attr("stroke-width", 1.5)
-                .attr("d", d3.line()
-                    .x(function(d) { return x(d.date) })
-                    .y(function(d) { return y(d.value) })
-                )
-    })
-}
-
 function draw_block_import() {
     var margin = { top: 10, right: 30, bottom: 30, left: 40 };
     var width = 800 - margin.left - margin.right;
@@ -252,12 +202,10 @@ function draw_block_import() {
 $(document).ready(function() {
     $('#tab2-link').click(function() {
         $('#best_and_finalized').empty();
-        $('#block_announcements').empty();
         $('#finality_notifications').empty();
         $('#block_import').empty();
 
         draw_block_height();
-        draw_block_announcements();
         draw_block_import();
     });
 });
