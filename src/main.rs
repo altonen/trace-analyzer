@@ -6,12 +6,12 @@ use rayon::prelude::*;
 use regex::{Regex, RegexSet};
 use serde::Serialize;
 
-use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader, BufWriter, Write};
-
-mod block_height;
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+    fs::File,
+    io::{self, BufRead, BufReader, BufWriter, Write},
+};
 
 #[derive(Parser)]
 struct Flags {
