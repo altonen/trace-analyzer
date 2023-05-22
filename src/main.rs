@@ -349,6 +349,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         vec![String::from("date,block-announces,grandpa,transactions\n")];
     let mut protocol_send_msg_usage =
         vec![String::from("date,block-announces,grandpa,transactions\n")];
+    let mut sync_request_response = vec![String::from("date,request,response\n")];
     let mut conn_info = ConnectionInfo::default();
 
     let mut block_announce_substream = SubstreamOpenInfo::default();
@@ -360,6 +361,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut roles = ConnectionRole::default();
     let mut addresses = AddressType::default();
     let mut sync_info = SyncInfo::default();
+    let mut sync_request_info = (0, 0);
 
     for delta in deltas {
         if current_time.is_none() {
@@ -430,8 +432,19 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                 ));
 
                 current_protocol_info.clear();
-                current_time = Some(delta.time);
             }
+
+            if sync_request_info.0 != 0 || sync_request_info.1 != 0 {
+                sync_request_response.push(format!(
+                    "{},{},{}\n",
+                    current_time.as_ref().unwrap(),
+                    sync_request_info.0,
+                    sync_request_info.1,
+                ));
+                sync_request_info = (0, 0);
+            }
+
+            current_time = Some(delta.time);
         }
 
         match delta.delta {
@@ -458,12 +471,12 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                     ));
                 }
             }
-            // DeltaType::BlockRequestSent(String) => {
-            //     todo!();
-            // }
-            // DeltaType::BlockResponseReceived(String) => {
-            //     todo!();
-            // }
+            DeltaType::BlockRequestSent(peer) => {
+                sync_request_info.0 += 1;
+            }
+            DeltaType::BlockResponseReceived(peer) => {
+                sync_request_info.1 += 1;
+            }
             DeltaType::SyncConnected(peer) => {
                 sync_info.connected += 1;
                 sync_info.connected_unique.insert(peer);
@@ -585,6 +598,15 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         ));
     }
 
+    if sync_request_info.0 != 0 || sync_request_info.1 != 0 {
+        sync_request_response.push(format!(
+            "{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            sync_request_info.0,
+            sync_request_info.1,
+        ));
+    }
+
     export("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights).unwrap();
     export("block_import_times.csv", import_times).unwrap();
@@ -593,6 +615,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     export("bytes_received.csv", protocol_recv_byte_usage).unwrap();
     export("messages_received.csv", protocol_recv_msg_usage).unwrap();
     export("messages_sent.csv", protocol_send_msg_usage).unwrap();
+    export("sync_request_response.csv", sync_request_response).unwrap();
 
     #[derive(Debug, Default, Serialize)]
     struct JsonConnectionInfo {

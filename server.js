@@ -114,6 +114,14 @@ app.get('/sync-connectivity', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sync-request-response', (req, res) => {
+  const filePath = path.join(__dirname, './', 'sync_request_response.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sync_request_response.csv');
+  res.sendFile(filePath);
+});
+
 app.get('/network.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'network.js');
 

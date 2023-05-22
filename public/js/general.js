@@ -124,13 +124,14 @@ function draw_block_height() {
            .append("text")
            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-           .attr("x", 20)
-           .attr("y", function(d) {
-               if (d.name == "best") {
-                   return 30
-               } else {
-                   return 50
-               }
+           .attr("x", 0)
+           .attr("y", function(_d) {
+                return 50
+               // if (d.name == "best") {
+               //     return 30
+               // } else {
+               //     return 50
+               // }
            })
            .text(function(d) { return d.name; })
            .style("fill", function(d){ return myColor(d.name) })
