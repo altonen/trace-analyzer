@@ -1,11 +1,8 @@
 const express = require('express');
-// const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
-// const fs = require ('fs');
 
 const app = express();
-// const upload = multer({ dest: 'uploads/' });
 
 // Enable CORS for all routes
 app.use(cors());
@@ -118,6 +115,13 @@ app.get('/network.js', (req, res) => {
 
 app.get('/general.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'general.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/utils.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'utils.js');
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);
