@@ -31,7 +31,6 @@
         <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab5" id="tab5-link">Syncing</a></li>
         <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab6" id="tab6-link" href="#">GRANDPA</a></li>
-        <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab7" id="tab7-link" href="#">Transactions</a></li>
       </ul>
     </li>
   </ul>
@@ -143,17 +142,29 @@
       <hr>
       <h4>Block requests/responses over time</h4>
       <div class="alert alert-info" role="alert" id="block_request_response_time_info" style="display: none">
-        Did not read any block request/response events.
+        Did not read block request/response events.
       </div>
       <div id="block_request_response_time"></div>
-    </div>
 
+      <hr>
+      <h4>Messages sent/received</h4>
+      <div class="alert alert-info" role="alert" id="sync_messages_sent_received_info" style="display: none">
+        Did not read send/receive events.
+      </div>
+      <div id="sync_messages_sent_received">
+      </div>
+
+      <hr>
+      <h4>Bytes sent/received</h4>
+      <div class="alert alert-info" role="alert" id="sync_bytes_sent_received_info" style="display: none">
+        Did not read send/receive events.
+      </div>
+      <div id="sync_bytes_sent_received"><br>
+      </div>
+
+    </div>
     <div id="tab6" class="tab-pane fade">
       <h3>GRANDPA</h3>
-    </div>
-
-    <div id="tab7" class="tab-pane fade">
-      <h3>Transactions</h3>
     </div>
   </div>
 </div>

@@ -350,6 +350,8 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut protocol_send_msg_usage =
         vec![String::from("date,block-announces,grandpa,transactions\n")];
     let mut sync_request_response = vec![String::from("date,request,response\n")];
+    let mut sync_msg = vec![String::from("date,sent,received\n")];
+    let mut sync_bytes = vec![String::from("date,sent,received\n")];
     let mut conn_info = ConnectionInfo::default();
 
     let mut block_announce_substream = SubstreamOpenInfo::default();
@@ -361,7 +363,10 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut roles = ConnectionRole::default();
     let mut addresses = AddressType::default();
     let mut sync_info = SyncInfo::default();
+    let mut sync_info = SyncInfo::default();
     let mut sync_request_info = (0, 0);
+    let mut sync_msg_info = (0, 0);
+    let mut sync_byte_info = (0, 0);
 
     for delta in deltas {
         if current_time.is_none() {
@@ -444,6 +449,26 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                 sync_request_info = (0, 0);
             }
 
+            if sync_byte_info.0 != 0 || sync_byte_info.1 != 0 {
+                sync_bytes.push(format!(
+                    "{},{},{}\n",
+                    current_time.as_ref().unwrap(),
+                    sync_byte_info.0,
+                    sync_byte_info.1,
+                ));
+                sync_byte_info = (0, 0);
+            }
+
+            if sync_msg_info.0 != 0 || sync_msg_info.1 != 0 {
+                sync_msg.push(format!(
+                    "{},{},{}\n",
+                    current_time.as_ref().unwrap(),
+                    sync_msg_info.0,
+                    sync_msg_info.1,
+                ));
+                sync_msg_info = (0, 0);
+            }
+
             current_time = Some(delta.time);
         }
 
@@ -490,11 +515,31 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                 sync_info.evicted_unique.insert(peer);
             }
             DeltaType::BytesReceived(peer, protocol, received) => {
+                match protocol.as_str() {
+                    "0" => {
+                        sync_byte_info.1 += received;
+                        sync_msg_info.1 += 1;
+                    }
+                    "1" => {}
+                    "2" => {}
+                    _ => panic!("unrecognized protocol"),
+                }
+
                 let mut entry = current_protocol_info.entry(protocol).or_default();
                 entry.bytes_received += received;
                 entry.messages_received += 1;
             }
             DeltaType::BytesSent(peer, protocol, sent) => {
+                match protocol.as_str() {
+                    "0" => {
+                        sync_byte_info.0 += sent;
+                        sync_msg_info.0 += 1;
+                    }
+                    "1" => {}
+                    "2" => {}
+                    proto => println!("unrecognized protocol: {proto}"),
+                }
+
                 let mut entry = current_protocol_info.entry(protocol).or_default();
                 entry.bytes_sent += sent;
                 entry.messages_sent += 1;
@@ -607,6 +652,26 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         ));
     }
 
+    if sync_byte_info.0 != 0 || sync_byte_info.1 != 0 {
+        sync_bytes.push(format!(
+            "{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            sync_byte_info.0,
+            sync_byte_info.1,
+        ));
+        sync_byte_info = (0, 0);
+    }
+
+    if sync_msg_info.0 != 0 || sync_msg_info.1 != 0 {
+        sync_msg.push(format!(
+            "{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            sync_msg_info.0,
+            sync_msg_info.1,
+        ));
+        sync_msg_info = (0, 0);
+    }
+
     export("peers.csv", peers).unwrap();
     export("block_info.csv", block_heights).unwrap();
     export("block_import_times.csv", import_times).unwrap();
@@ -616,6 +681,8 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     export("messages_received.csv", protocol_recv_msg_usage).unwrap();
     export("messages_sent.csv", protocol_send_msg_usage).unwrap();
     export("sync_request_response.csv", sync_request_response).unwrap();
+    export("sync_bytes.csv", sync_bytes).unwrap();
+    export("sync_msg.csv", sync_msg).unwrap();
 
     #[derive(Debug, Default, Serialize)]
     struct JsonConnectionInfo {

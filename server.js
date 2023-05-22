@@ -122,6 +122,22 @@ app.get('/sync-request-response', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sync-msg', (req, res) => {
+  const filePath = path.join(__dirname, './', 'sync_msg.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sync_msg.csv');
+  res.sendFile(filePath);
+});
+
+app.get('/sync-bytes', (req, res) => {
+  const filePath = path.join(__dirname, './', 'sync_bytes.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sync_bytes.csv');
+  res.sendFile(filePath);
+});
+
 app.get('/network.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'network.js');
 
