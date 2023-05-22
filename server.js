@@ -106,6 +106,14 @@ app.get('/substreams', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sync-connectivity', (req, res) => {
+  const filePath = path.join(__dirname, './', 'sync_connectivity.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sync_connectivity.csv');
+  res.sendFile(filePath);
+});
+
 app.get('/network.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'network.js');
 
@@ -122,6 +130,13 @@ app.get('/general.js', (req, res) => {
 
 app.get('/utils.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'utils.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/sync.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'sync.js');
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);

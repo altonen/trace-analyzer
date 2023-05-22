@@ -75,6 +75,16 @@ enum Address {
     Ip6,
 }
 
+#[derive(Debug, Default)]
+struct SyncInfo {
+    connected: usize,
+    connected_unique: HashSet<String>,
+    disconnected: usize,
+    disconnected_unique: HashSet<String>,
+    evicted: usize,
+    evicted_unique: HashSet<String>,
+}
+
 #[derive(Debug)]
 enum DeltaType {
     PeerCount(String),
@@ -349,6 +359,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut current_protocol_info: HashMap<String, ProtocolInfo> = HashMap::new();
     let mut roles = ConnectionRole::default();
     let mut addresses = AddressType::default();
+    let mut sync_info = SyncInfo::default();
 
     for delta in deltas {
         if current_time.is_none() {
@@ -453,15 +464,18 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             // DeltaType::BlockResponseReceived(String) => {
             //     todo!();
             // }
-            // DeltaType::SyncConnected(String) => {
-            //     todo!();
-            // }
-            // DeltaType::SyncDisconnected(String) => {
-            //     todo!();
-            // }
-            // DeltaType::Evicted(String) => {
-            //     todo!();
-            // }
+            DeltaType::SyncConnected(peer) => {
+                sync_info.connected += 1;
+                sync_info.connected_unique.insert(peer);
+            }
+            DeltaType::SyncDisconnected(peer) => {
+                sync_info.disconnected += 1;
+                sync_info.disconnected_unique.insert(peer);
+            }
+            DeltaType::Evicted(peer) => {
+                sync_info.evicted += 1;
+                sync_info.evicted_unique.insert(peer);
+            }
             DeltaType::BytesReceived(peer, protocol, received) => {
                 let mut entry = current_protocol_info.entry(protocol).or_default();
                 entry.bytes_received += received;
@@ -596,7 +610,31 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     })
     .unwrap();
 
-    let file = File::create("connectivity.json")?;
+    #[derive(Debug, Default, Serialize)]
+    struct JsonSyncInfo {
+        connected: usize,
+        connected_unique: usize,
+        disconnected: usize,
+        disconnected_unique: usize,
+        evicted: usize,
+        evicted_unique: usize,
+    }
+
+    let mut substream_info = format!(
+        "group,total,unique\nconnected,{},{}\ndisconnected,{},{}\nevicted,{},{}\n",
+        sync_info.connected,
+        sync_info.connected_unique.len(),
+        sync_info.disconnected,
+        sync_info.disconnected_unique.len(),
+        sync_info.evicted,
+        sync_info.evicted_unique.len(),
+    );
+    let file = File::create("sync_connectivity.csv")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(substream_info.as_bytes())?;
+    writer.flush()?;
+
+    let file = File::create("sync.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
