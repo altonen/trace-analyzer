@@ -613,6 +613,19 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
 
+    let mut substream_info = format!(
+        "group,success,failure\nblock-announces,{},{}\ntransactions,{},{}\ngrandpa,{},{}\n",
+        block_announce_substream.success,
+        block_announce_substream.failure,
+        transaction_substream.success,
+        transaction_substream.failure,
+        grandpa_substream.success,
+        grandpa_substream.failure,
+    );
+    let file = File::create("substreams.csv")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(substream_info.as_bytes())?;
+    writer.flush()?;
     Ok(())
 }
 
