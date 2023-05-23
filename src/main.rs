@@ -718,19 +718,19 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         ));
     }
 
-    export("peers.csv", peers).unwrap();
-    export("block_info.csv", block_heights).unwrap();
-    export("block_import_times.csv", import_times).unwrap();
-    export("block_announcements.csv", block_announcements).unwrap();
-    export("bytes_sent.csv", protocol_send_byte_usage).unwrap();
-    export("bytes_received.csv", protocol_recv_byte_usage).unwrap();
-    export("messages_received.csv", protocol_recv_msg_usage).unwrap();
-    export("messages_sent.csv", protocol_send_msg_usage).unwrap();
-    export("sync_request_response.csv", sync_request_response).unwrap();
-    export("sync_bytes.csv", sync_bytes).unwrap();
-    export("sync_msg.csv", sync_msg).unwrap();
-    export("grandpa_bytes.csv", grandpa_bytes).unwrap();
-    export("grandpa_msg.csv", grandpa_msg).unwrap();
+    export("results/peers.csv", peers).unwrap();
+    export("results/block_info.csv", block_heights).unwrap();
+    export("results/block_import_times.csv", import_times).unwrap();
+    export("results/block_announcements.csv", block_announcements).unwrap();
+    export("results/bytes_sent.csv", protocol_send_byte_usage).unwrap();
+    export("results/bytes_received.csv", protocol_recv_byte_usage).unwrap();
+    export("results/messages_received.csv", protocol_recv_msg_usage).unwrap();
+    export("results/messages_sent.csv", protocol_send_msg_usage).unwrap();
+    export("results/sync_request_response.csv", sync_request_response).unwrap();
+    export("results/sync_bytes.csv", sync_bytes).unwrap();
+    export("results/sync_msg.csv", sync_msg).unwrap();
+    export("results/grandpa_bytes.csv", grandpa_bytes).unwrap();
+    export("results/grandpa_msg.csv", grandpa_msg).unwrap();
 
     #[derive(Debug, Default, Serialize)]
     struct JsonConnectionInfo {
@@ -767,24 +767,24 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         sync_info.evicted,
         sync_info.evicted_unique.len(),
     );
-    let file = File::create("sync_connectivity.csv")?;
+    let file = File::create("results/sync_connectivity.csv")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(substream_info.as_bytes())?;
     writer.flush()?;
 
-    let file = File::create("sync.json")?;
+    let file = File::create("results/sync.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
 
     let json = serde_json::to_string(&roles).unwrap();
-    let file = File::create("roles.json")?;
+    let file = File::create("results/roles.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
 
     let json = serde_json::to_string(&addresses).unwrap();
-    let file = File::create("addresses.json")?;
+    let file = File::create("results/addresses.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;
@@ -798,7 +798,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         grandpa_substream.success,
         grandpa_substream.failure,
     );
-    let file = File::create("substreams.csv")?;
+    let file = File::create("results/substreams.csv")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(substream_info.as_bytes())?;
     writer.flush()?;
