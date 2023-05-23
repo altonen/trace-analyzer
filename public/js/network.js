@@ -573,6 +573,11 @@ function draw_substream_bars() {
         var grandpa = parseInt(data[2].success) + parseInt(data[2].failure);
         var max = Math.max(block_announce, Math.max(transactions, grandpa));
 
+        if (max === 0) {
+            $('#substream_info').show();
+            return;
+        }
+
         var svg = d3.select("#substream_open_results")
             .append("svg")
             .attr("width", width + margin.left + margin.right)
