@@ -218,7 +218,7 @@ wss.on('connection', function(client) {
     const files = fs.readdirSync("results/");
     console.log("client connected")
 
-    client.send(JSON.stringify({ 'status': { "no_files": files.length === 0 } }));
+    client.send(JSON.stringify({ 'status': { "noFiles": files.length === 0 } }));
 
     client.on('message', function(msg) {
         try {
@@ -230,6 +230,13 @@ wss.on('connection', function(client) {
 
         if ("deleteFiles" in message["status"]) {
             console.log('delete files from results/');
+
+            files.forEach(file => {
+                const filePath = `results/${file}`;
+                fs.unlinkSync(filePath);
+            });
+
+            client.send(JSON.stringify({ 'status': { "filesDeleted": true } }));
         }
     });
 

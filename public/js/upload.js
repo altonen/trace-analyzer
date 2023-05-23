@@ -21,12 +21,16 @@ function websocketMessageListener(message) {
         return;
     }
 
-    if ("no_files" in message_data["status"]) {
-        if (message_data["status"]["no_files"] === false) {
+    if ("noFiles" in message_data["status"]) {
+        if (message_data["status"]["noFiles"] === false) {
             $("#tab2-link").prop('class', 'nav-link');
             $("#tab30-link").prop('class', 'nav-link');
             $("#delete_files").show();
         }
+    }
+
+    if ("filesDeleted" in message_data["status"]) {
+        $("#delete_files").prop('class', 'btn btn-danger disabled');
     }
 }
 
