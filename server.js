@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.static('public'));
 
 app.get('/peer-info', (req, res) => {
-  const filePath = path.join(__dirname, './', 'peers.csv');
+  const filePath = path.join(__dirname, './results/', 'peers.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=peers.csv');
@@ -22,7 +22,7 @@ app.get('/peer-info', (req, res) => {
 });
 
 app.get('/block-announcements', (req, res) => {
-  const filePath = path.join(__dirname, './', 'block_announcements.csv');
+  const filePath = path.join(__dirname, './results/', 'block_announcements.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=block_announcements.csv');
@@ -30,7 +30,7 @@ app.get('/block-announcements', (req, res) => {
 });
 
 app.get('/block-imports', (req, res) => {
-  const filePath = path.join(__dirname, './', 'block_import_times.csv');
+  const filePath = path.join(__dirname, './results/', 'block_import_times.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=block_import_times.csv');
@@ -38,7 +38,7 @@ app.get('/block-imports', (req, res) => {
 });
 
 app.get('/best-and-finalized', (req, res) => {
-  const filePath = path.join(__dirname, './', 'block_info.csv');
+  const filePath = path.join(__dirname, './results/', 'block_info.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=block_info.csv');
@@ -46,7 +46,7 @@ app.get('/best-and-finalized', (req, res) => {
 });
 
 app.get('/sent-bytes', (req, res) => {
-  const filePath = path.join(__dirname, './', 'bytes_sent.csv');
+  const filePath = path.join(__dirname, './results/', 'bytes_sent.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=bytes_sent.csv');
@@ -54,7 +54,7 @@ app.get('/sent-bytes', (req, res) => {
 });
 
 app.get('/received-bytes', (req, res) => {
-  const filePath = path.join(__dirname, './', 'bytes_received.csv');
+  const filePath = path.join(__dirname, './results/', 'bytes_received.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=bytes_received.csv');
@@ -62,7 +62,7 @@ app.get('/received-bytes', (req, res) => {
 });
 
 app.get('/sent-messages', (req, res) => {
-  const filePath = path.join(__dirname, './', 'messages_sent.csv');
+  const filePath = path.join(__dirname, './results/', 'messages_sent.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=messages_sent.csv');
@@ -70,7 +70,7 @@ app.get('/sent-messages', (req, res) => {
 });
 
 app.get('/received-messages', (req, res) => {
-  const filePath = path.join(__dirname, './', 'messages_received.csv');
+  const filePath = path.join(__dirname, './results/', 'messages_received.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=messages_received.csv');
@@ -78,7 +78,7 @@ app.get('/received-messages', (req, res) => {
 });
 
 app.get('/connectivity', (req, res) => {
-  const filePath = path.join(__dirname, './', 'connectivity.json');
+  const filePath = path.join(__dirname, './results/', 'connectivity.json');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=connectivity.json');
@@ -86,7 +86,7 @@ app.get('/connectivity', (req, res) => {
 });
 
 app.get('/roles', (req, res) => {
-  const filePath = path.join(__dirname, './', 'roles.json');
+  const filePath = path.join(__dirname, './results/', 'roles.json');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=roles.json');
@@ -94,7 +94,7 @@ app.get('/roles', (req, res) => {
 });
 
 app.get('/addresses', (req, res) => {
-  const filePath = path.join(__dirname, './', 'addresses.json');
+  const filePath = path.join(__dirname, './results/', 'addresses.json');
 
   res.setHeader('Content-Type', 'text/json');
   res.setHeader('Content-Disposition', 'attachment; filename=addresses.json');
@@ -102,7 +102,7 @@ app.get('/addresses', (req, res) => {
 });
 
 app.get('/substreams', (req, res) => {
-  const filePath = path.join(__dirname, './', 'substreams.csv');
+  const filePath = path.join(__dirname, './results/', 'substreams.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=substreams.csv');
@@ -110,7 +110,7 @@ app.get('/substreams', (req, res) => {
 });
 
 app.get('/sync-connectivity', (req, res) => {
-  const filePath = path.join(__dirname, './', 'sync_connectivity.csv');
+  const filePath = path.join(__dirname, './results/', 'sync_connectivity.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=sync_connectivity.csv');
@@ -118,7 +118,7 @@ app.get('/sync-connectivity', (req, res) => {
 });
 
 app.get('/sync-request-response', (req, res) => {
-  const filePath = path.join(__dirname, './', 'sync_request_response.csv');
+  const filePath = path.join(__dirname, './results/', 'sync_request_response.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=sync_request_response.csv');
@@ -126,7 +126,7 @@ app.get('/sync-request-response', (req, res) => {
 });
 
 app.get('/sync-msg', (req, res) => {
-  const filePath = path.join(__dirname, './', 'sync_msg.csv');
+  const filePath = path.join(__dirname, './results/', 'sync_msg.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=sync_msg.csv');
@@ -134,7 +134,7 @@ app.get('/sync-msg', (req, res) => {
 });
 
 app.get('/sync-bytes', (req, res) => {
-  const filePath = path.join(__dirname, './', 'sync_bytes.csv');
+  const filePath = path.join(__dirname, './results/', 'sync_bytes.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=sync_bytes.csv');
@@ -142,7 +142,7 @@ app.get('/sync-bytes', (req, res) => {
 });
 
 app.get('/grandpa-msg', (req, res) => {
-  const filePath = path.join(__dirname, './', 'grandpa_msg.csv');
+  const filePath = path.join(__dirname, './results/', 'grandpa_msg.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=grandpa_msg.csv');
@@ -150,7 +150,7 @@ app.get('/grandpa-msg', (req, res) => {
 });
 
 app.get('/grandpa-bytes', (req, res) => {
-  const filePath = path.join(__dirname, './', 'grandpa_bytes.csv');
+  const filePath = path.join(__dirname, './results/', 'grandpa_bytes.csv');
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=grandpa_bytes.csv');

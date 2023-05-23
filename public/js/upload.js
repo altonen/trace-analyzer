@@ -36,6 +36,7 @@ function websocketMessageListener(message) {
 
 function websocketCloseListener(error) {
     console.log("connection closed...");        
+    $("#server_conn").show();
     setTimeout(connectWebsocket, 1000, websocketAddr);    
 }
 
