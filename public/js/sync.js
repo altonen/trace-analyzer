@@ -431,8 +431,8 @@ $(document).ready(function() {
         $('#sync_connectivity').empty();
         $('#block_announcements').empty();
         $('#block_request_response_time').empty();
-        $('sync_messages_sent_received_info').empty();
-        $('sync_bytes_sent_received_info').empty();
+        $('#sync_messages_sent_received').empty();
+        $('#sync_bytes_sent_received').empty();
 
         draw_connectivity_bars();
         draw_block_announcements();
