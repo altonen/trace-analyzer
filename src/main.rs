@@ -352,6 +352,8 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut sync_request_response = vec![String::from("date,request,response\n")];
     let mut sync_msg = vec![String::from("date,sent,received\n")];
     let mut sync_bytes = vec![String::from("date,sent,received\n")];
+    let mut grandpa_msg = vec![String::from("date,sent,received\n")];
+    let mut grandpa_bytes = vec![String::from("date,sent,received\n")];
     let mut conn_info = ConnectionInfo::default();
 
     let mut block_announce_substream = SubstreamOpenInfo::default();
@@ -367,6 +369,8 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut sync_request_info = (0, 0);
     let mut sync_msg_info = (0, 0);
     let mut sync_byte_info = (0, 0);
+    let mut grandpa_msg_info = (0, 0);
+    let mut grandpa_byte_info = (0, 0);
 
     for delta in deltas {
         if current_time.is_none() {
@@ -469,6 +473,26 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                 sync_msg_info = (0, 0);
             }
 
+            if grandpa_byte_info.0 != 0 || grandpa_byte_info.1 != 0 {
+                grandpa_bytes.push(format!(
+                    "{},{},{}\n",
+                    current_time.as_ref().unwrap(),
+                    grandpa_byte_info.0,
+                    grandpa_byte_info.1,
+                ));
+                grandpa_byte_info = (0, 0);
+            }
+
+            if grandpa_msg_info.0 != 0 || grandpa_msg_info.1 != 0 {
+                grandpa_msg.push(format!(
+                    "{},{},{}\n",
+                    current_time.as_ref().unwrap(),
+                    grandpa_msg_info.0,
+                    grandpa_msg_info.1,
+                ));
+                grandpa_msg_info = (0, 0);
+            }
+
             current_time = Some(delta.time);
         }
 
@@ -521,7 +545,10 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                         sync_msg_info.1 += 1;
                     }
                     "1" => {}
-                    "2" => {}
+                    "2" => {
+                        grandpa_byte_info.1 += received;
+                        grandpa_msg_info.1 += 1;
+                    }
                     _ => panic!("unrecognized protocol"),
                 }
 
@@ -536,7 +563,10 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                         sync_msg_info.0 += 1;
                     }
                     "1" => {}
-                    "2" => {}
+                    "2" => {
+                        grandpa_byte_info.0 += sent;
+                        grandpa_msg_info.0 += 1;
+                    }
                     proto => println!("unrecognized protocol: {proto}"),
                 }
 
@@ -659,7 +689,6 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             sync_byte_info.0,
             sync_byte_info.1,
         ));
-        sync_byte_info = (0, 0);
     }
 
     if sync_msg_info.0 != 0 || sync_msg_info.1 != 0 {
@@ -669,7 +698,24 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             sync_msg_info.0,
             sync_msg_info.1,
         ));
-        sync_msg_info = (0, 0);
+    }
+
+    if grandpa_byte_info.0 != 0 || grandpa_byte_info.1 != 0 {
+        grandpa_bytes.push(format!(
+            "{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            grandpa_byte_info.0,
+            grandpa_byte_info.1,
+        ));
+    }
+
+    if grandpa_msg_info.0 != 0 || grandpa_msg_info.1 != 0 {
+        grandpa_msg.push(format!(
+            "{},{},{}\n",
+            current_time.as_ref().unwrap(),
+            grandpa_msg_info.0,
+            grandpa_msg_info.1,
+        ));
     }
 
     export("peers.csv", peers).unwrap();
@@ -683,6 +729,8 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     export("sync_request_response.csv", sync_request_response).unwrap();
     export("sync_bytes.csv", sync_bytes).unwrap();
     export("sync_msg.csv", sync_msg).unwrap();
+    export("grandpa_bytes.csv", grandpa_bytes).unwrap();
+    export("grandpa_msg.csv", grandpa_msg).unwrap();
 
     #[derive(Debug, Default, Serialize)]
     struct JsonConnectionInfo {

@@ -138,6 +138,22 @@ app.get('/sync-bytes', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/grandpa-msg', (req, res) => {
+  const filePath = path.join(__dirname, './', 'grandpa_msg.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=grandpa_msg.csv');
+  res.sendFile(filePath);
+});
+
+app.get('/grandpa-bytes', (req, res) => {
+  const filePath = path.join(__dirname, './', 'grandpa_bytes.csv');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=grandpa_bytes.csv');
+  res.sendFile(filePath);
+});
+
 app.get('/connectivity.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'connectivity.js');
 
@@ -168,6 +184,13 @@ app.get('/utils.js', (req, res) => {
 
 app.get('/sync.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'sync.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/grandpa.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'grandpa.js');
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);
