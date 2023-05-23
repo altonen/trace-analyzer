@@ -156,7 +156,7 @@ function draw_block_import() {
 
         let slow_import_count = 0;
         for (var value in data) {
-            if (data[value].duration >= 2000) {
+            if (data[value].duration >= 1500) {
                 slow_import_count++;                
             }
         }
@@ -180,12 +180,12 @@ function draw_block_import() {
 
         var bins = histogram(data);
 
-        var y = d3.scaleLinear()
-            .range([height, 0]);
-        y.domain([0, d3.max(bins, function(d) { return d.length; })]);
-        // var y = d3.scaleLog()
-        //     .range([0, height])
-        //     .domain([1, 100000]);
+        // var y = d3.scaleLinear()
+        //     .range([height, 0]);
+        // y.domain([0, d3.max(bins, function(d) { return d.length; })]);
+        var y = d3.scaleLog()
+            .range([0, height])
+            .domain([1, 100000]);
 
         svg.append("g").call(d3.axisLeft(y));
         svg.selectAll("rect")
