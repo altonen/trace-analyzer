@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 let WebSocket = require("ws");
 let WSServer = require("ws").Server;
+const fs = require('fs');
 
 const app = express();
 
@@ -214,17 +215,25 @@ let wss = new WSServer({
 });
 
 wss.on('connection', function(client) {
+    const files = fs.readdirSync("results/");
     console.log("client connected")
 
+    client.send(JSON.stringify({ 'status': { "no_files": files.length === 0 } }));
+
     client.on('message', function(msg) {
-        if (msg === "status") {
-            console.log('check status of logs');
-        } else {
-            console.log(msg);
+        try {
+            var message = JSON.parse(msg);
+        } catch (err) {
+            console.log("failed to parse client message: ", err);
+            return;
+        }
+
+        if ("deleteFiles" in message["status"]) {
+            console.log('delete files from results/');
         }
     });
 
-    client.on('close', function(connection) {
+    client.on('close', function(_connection) {
         console.log("client disconnected");
     });
 });

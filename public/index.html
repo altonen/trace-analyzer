@@ -37,12 +37,14 @@
 
   <div class="tab-content mt-2">
     <div id="tab1" class="tab-pane fade show active">
-      <h3>Upload</h3>
+      <h3>Upload log file</h3>
+      <br>
 
-      <button class="btn btn-primary" type="button" disabled>
+      <button class="btn btn-primary" type="button" disabled  id="server_conn">
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Connecting to server...
       </button>
+      <button type="button" class="btn btn-danger" id="delete_files" style="display: none">Remove files</button>
     </div>
 
     <div id="tab2" class="tab-pane fade">

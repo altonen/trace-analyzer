@@ -20,6 +20,14 @@ function websocketMessageListener(message) {
         console.log(e);
         return;
     }
+
+    if ("no_files" in message_data["status"]) {
+        if (message_data["status"]["no_files"] === false) {
+            $("#tab2-link").prop('class', 'nav-link');
+            $("#tab30-link").prop('class', 'nav-link');
+            $("#delete_files").show();
+        }
+    }
 }
 
 function websocketCloseListener(error) {
@@ -46,6 +54,8 @@ function connectWebsocket(addr) {
 
     connection = new WebSocket(('https:' == document.location.protocol ? 'wss' : 'ws') + '://' + addr);  
 
+    $("#server_conn").hide();
+
     connection.addEventListener('open',websocketOpenListener);
     connection.addEventListener('message',websocketMessageListener);
     connection.addEventListener('close',websocketCloseListener);
@@ -57,9 +67,14 @@ $(document).ready(function() {
 
     console.log("contact server and check if anything is availble");
     // $("#progress_spinner").show();
-    // $("#tab2-link").prop('aria-disabled', true);
-    // $("#tab2-link").prop('class', 'nav-link disabled');
-    // $("#tab30-link").prop('aria-disabled', true);
-    // $("#tab30-link").prop('class', 'nav-link disabled');
+    $("#tab2-link").prop('class', 'nav-link disabled');
+    $("#tab30-link").prop('class', 'nav-link disabled');
     console.log("disable button")
+
+    $('#delete_files').click(function() {
+        $("#tab2-link").prop('class', 'nav-link disabled');
+        $("#tab30-link").prop('class', 'nav-link disabled');
+        var status = { "status": { "deleteFiles": true }};
+        connection.send(JSON.stringify(status));
+    });
 });
