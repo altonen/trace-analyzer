@@ -1,3 +1,6 @@
+// Parts of the code from here have been taken from https://github.com/ultravideo/cloud-encoder
+// which is licensed under BSD-2.
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -201,6 +204,13 @@ app.get('/grandpa.js', (req, res) => {
 
 app.get('/upload.js', (req, res) => {
   const filePath = path.join(__dirname, 'public/js', 'upload.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/resumable.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'resumable.js');
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);
