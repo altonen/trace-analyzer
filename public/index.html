@@ -24,7 +24,7 @@
       <a class="nav-link" data-bs-toggle="tab" href="#tab2" id="tab2-link">General</a>
     </li>
     <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Network</a>
+      <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" id="tab30-link">Network</a>
       <ul class="dropdown-menu">
         <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab3" id="tab3-link">Connectivity</a></li>
         <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab4" id="tab4-link">Data usage</a></li>
@@ -37,7 +37,12 @@
 
   <div class="tab-content mt-2">
     <div id="tab1" class="tab-pane fade show active">
-      <h2>Upload</h2>
+      <h3>Upload</h3>
+
+      <button class="btn btn-primary" type="button" disabled>
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Connecting to server...
+      </button>
     </div>
 
     <div id="tab2" class="tab-pane fade">
@@ -192,5 +197,6 @@
 <script src="http://localhost:8000/data_usage.js"></script>
 <script src="http://localhost:8000/sync.js"></script>
 <script src="http://localhost:8000/grandpa.js"></script>
+<script src="http://localhost:8000/upload.js"></script>
 </body>
 </html>

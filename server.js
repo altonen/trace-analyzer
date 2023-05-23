@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+let WebSocket = require("ws");
+let WSServer = require("ws").Server;
 
 const app = express();
 
@@ -196,6 +198,33 @@ app.get('/grandpa.js', (req, res) => {
   res.sendFile(filePath);
 });
 
-app.listen(8000, () => {
-  console.log('Server is listening on port 8000');
+app.get('/upload.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'upload.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+var server = require("http").createServer();
+server.listen(8000).on("request", app);
+
+// use the same server for WebSocket and http server
+let wss = new WSServer({
+    server: server
+});
+
+wss.on('connection', function(client) {
+    console.log("client connected")
+
+    client.on('message', function(msg) {
+        if (msg === "status") {
+            console.log('check status of logs');
+        } else {
+            console.log(msg);
+        }
+    });
+
+    client.on('close', function(connection) {
+        console.log("client disconnected");
+    });
 });
