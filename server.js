@@ -138,8 +138,15 @@ app.get('/sync-bytes', (req, res) => {
   res.sendFile(filePath);
 });
 
-app.get('/network.js', (req, res) => {
-  const filePath = path.join(__dirname, 'public/js', 'network.js');
+app.get('/connectivity.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'connectivity.js');
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/data_usage.js', (req, res) => {
+  const filePath = path.join(__dirname, 'public/js', 'data_usage.js');
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);
