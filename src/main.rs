@@ -766,6 +766,10 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         disconnected: conn_info.disconnected,
     })
     .unwrap();
+    let file = File::create("results/connectivity.json")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(json.as_bytes())?;
+    writer.flush()?;
 
     #[derive(Debug, Default, Serialize)]
     struct JsonSyncInfo {
