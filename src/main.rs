@@ -401,7 +401,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if !current_protocol_info.is_empty() {
                 protocol_send_byte_usage.push(format!(
                     "{},{},{},{}\n",
-                    *current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     current_protocol_info
                         .get("0")
                         .map_or(0, |info| info.bytes_sent),
@@ -415,7 +415,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
                 protocol_send_msg_usage.push(format!(
                     "{},{},{},{}\n",
-                    *current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     current_protocol_info
                         .get("0")
                         .map_or(0, |info| info.messages_sent),
@@ -429,7 +429,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
                 protocol_recv_byte_usage.push(format!(
                     "{},{},{},{}\n",
-                    *current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     current_protocol_info
                         .get("0")
                         .map_or(0, |info| info.bytes_received),
@@ -443,7 +443,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
                 protocol_recv_msg_usage.push(format!(
                     "{},{},{},{}\n",
-                    *current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     current_protocol_info
                         .get("0")
                         .map_or(0, |info| info.messages_received),
@@ -461,7 +461,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if sync_request_info.0 != 0 || sync_request_info.1 != 0 {
                 sync_request_response.push(format!(
                     "{},{},{}\n",
-                    current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     sync_request_info.0,
                     sync_request_info.1,
                 ));
@@ -471,7 +471,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if sync_byte_info.0 != 0 || sync_byte_info.1 != 0 {
                 sync_bytes.push(format!(
                     "{},{},{}\n",
-                    current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     sync_byte_info.0,
                     sync_byte_info.1,
                 ));
@@ -481,7 +481,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if sync_msg_info.0 != 0 || sync_msg_info.1 != 0 {
                 sync_msg.push(format!(
                     "{},{},{}\n",
-                    current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     sync_msg_info.0,
                     sync_msg_info.1,
                 ));
@@ -491,7 +491,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if grandpa_byte_info.0 != 0 || grandpa_byte_info.1 != 0 {
                 grandpa_bytes.push(format!(
                     "{},{},{}\n",
-                    current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     grandpa_byte_info.0,
                     grandpa_byte_info.1,
                 ));
@@ -501,7 +501,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             if grandpa_msg_info.0 != 0 || grandpa_msg_info.1 != 0 {
                 grandpa_msg.push(format!(
                     "{},{},{}\n",
-                    current_time.as_ref().unwrap(),
+                    current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
                     grandpa_msg_info.0,
                     grandpa_msg_info.1,
                 ));
@@ -637,7 +637,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     if !current_protocol_info.is_empty() {
         protocol_send_byte_usage.push(format!(
             "{},{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             current_protocol_info
                 .get("0")
                 .map_or(0, |info| info.bytes_sent),
@@ -651,7 +651,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
         protocol_send_msg_usage.push(format!(
             "{},{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             current_protocol_info
                 .get("0")
                 .map_or(0, |info| info.messages_sent),
@@ -665,7 +665,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
         protocol_recv_byte_usage.push(format!(
             "{},{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             current_protocol_info
                 .get("0")
                 .map_or(0, |info| info.bytes_received),
@@ -679,7 +679,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
         protocol_recv_msg_usage.push(format!(
             "{},{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             current_protocol_info
                 .get("0")
                 .map_or(0, |info| info.messages_received),
@@ -695,7 +695,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     if sync_request_info.0 != 0 || sync_request_info.1 != 0 {
         sync_request_response.push(format!(
             "{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             sync_request_info.0,
             sync_request_info.1,
         ));
@@ -704,7 +704,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     if sync_byte_info.0 != 0 || sync_byte_info.1 != 0 {
         sync_bytes.push(format!(
             "{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             sync_byte_info.0,
             sync_byte_info.1,
         ));
@@ -713,7 +713,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     if sync_msg_info.0 != 0 || sync_msg_info.1 != 0 {
         sync_msg.push(format!(
             "{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             sync_msg_info.0,
             sync_msg_info.1,
         ));
@@ -722,7 +722,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     if grandpa_byte_info.0 != 0 || grandpa_byte_info.1 != 0 {
         grandpa_bytes.push(format!(
             "{},{},{}\n",
-            current_time.as_ref().unwrap(),
+            current_time.as_ref().unwrap().format("%H:%M:%S%.3f"),
             grandpa_byte_info.0,
             grandpa_byte_info.1,
         ));
