@@ -88,6 +88,16 @@ app.get('/connectivity', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/sync-request-failure-success', (req, res) => {
+  console.log('got request for sucess/failure repsonse');
+
+  const filePath = path.join(__dirname, './results/', 'sync_request_success_failure.json');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sync_request_success_failure.json');
+  res.sendFile(filePath);
+});
+
 app.get('/roles', (req, res) => {
   const filePath = path.join(__dirname, './results/', 'roles.json');
 

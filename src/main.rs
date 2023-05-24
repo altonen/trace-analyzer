@@ -44,6 +44,12 @@ struct ConnectionRole {
 }
 
 #[derive(Debug, Default, Serialize)]
+struct RequestSuccessFailure {
+    succeeded: usize,
+    failed: usize,
+}
+
+#[derive(Debug, Default, Serialize)]
 struct AddressType {
     dns: usize,
     ip4: usize,
@@ -105,6 +111,7 @@ enum DeltaType {
     Disconnected(String),
     SubstreamOpenSuccess(usize),
     SubstreamOpenFailure(usize),
+    RequestFailed(String),
 }
 
 fn export(filename: &str, data: Vec<String>) -> Result<(), Box<dyn Error>> {
@@ -287,6 +294,12 @@ fn process_line<'a>(line: &'a str, set: &RegexSet, regexes: &Vec<Regex>) -> Vec<
                 delta: DeltaType::SubstreamOpenFailure(substream),
             });
         }
+        17 => {
+            deltas.push(Delta {
+                time,
+                delta: DeltaType::RequestFailed(captures[3].to_owned()),
+            });
+        }
         _ => {}
     }
 
@@ -312,6 +325,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+)"#,
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultOk\(SetId\((\d+)\)\)",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(PeerId[^"]+\"([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultErr\(SetId\((\d+)\)\)"#,
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Request to peer PeerId.*(12D3[a-zA-Z0-9]+).*failed",
     ])
     .unwrap();
     let regexes: Vec<_> = set
@@ -366,6 +380,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
     let mut addresses = AddressType::default();
     let mut sync_info = SyncInfo::default();
     let mut sync_info = SyncInfo::default();
+    let mut request_success_failure = RequestSuccessFailure::default();
     let mut sync_request_info = (0, 0);
     let mut sync_msg_info = (0, 0);
     let mut sync_byte_info = (0, 0);
@@ -525,6 +540,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             }
             DeltaType::BlockResponseReceived(peer) => {
                 sync_request_info.1 += 1;
+                request_success_failure.succeeded += 1;
             }
             DeltaType::SyncConnected(peer) => {
                 sync_info.connected += 1;
@@ -611,6 +627,9 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                 2 => grandpa_substream.failure += 1,
                 _ => {}
             },
+            DeltaType::RequestFailed(peer) => {
+                request_success_failure.failed += 1;
+            }
             _ => {}
         }
     }
@@ -779,6 +798,12 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
 
     let json = serde_json::to_string(&roles).unwrap();
     let file = File::create("results/roles.json")?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(json.as_bytes())?;
+    writer.flush()?;
+
+    let json = serde_json::to_string(&request_success_failure).unwrap();
+    let file = File::create("results/sync_request_success_failure.json")?;
     let mut writer = BufWriter::new(file);
     writer.write_all(json.as_bytes())?;
     writer.flush()?;

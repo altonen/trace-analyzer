@@ -152,14 +152,14 @@ function draw_request_response() {
             .range(d3.schemeSet2);
 
         var x = d3.scaleTime()
-            .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.date); }))
-            .range([0, width]);
+            .range([0, width])
+            .domain(d3.extent(data, function(d) { return d3.timeParse("%H:%M:%S.%L")(d.date); }));
         svg.append("g")
             .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M:%S")));
+            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M")));
 
         var y = d3.scaleLinear()
-            .domain([low * 0.9, high * 1.10])
+            .domain([low, high])
             .range([height, 0]);
         svg.append("g").call(d3.axisLeft(y));
 
@@ -187,7 +187,7 @@ function draw_request_response() {
             .enter()
             .append("circle")
             .attr("cx", function(d) {
-                return x(d3.timeParse("%H:%M:%S.%L")(d.date))
+                return x(d3.timeParse("%H:%M:%S")(d.date))
             })
             .attr("cy", function(d) { return y(d.value) } )
             .attr("r", 5)
@@ -211,7 +211,7 @@ function draw_request_response() {
     });
 }
 
-function draw_messages_sent_received() {
+function draw_sync_messages_sent_received() {
 
     var margin = { top: 0, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
@@ -319,12 +319,16 @@ function draw_messages_sent_received() {
     });
 }
 
-function draw_bytes_sent_received() {
+function draw_sync_bytes_sent_received() {
     var margin = { top: 0, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
+    console.log('dddd');
+
     d3.csv("http://localhost:8000/sync-bytes", function(data) {
+        console.log('bytes received')
+
         var high = 0;
         var low = Number.MAX_SAFE_INTEGER;
         var allGroup = ["sent", "received"]
@@ -426,6 +430,31 @@ function draw_bytes_sent_received() {
     });
 }
 
+function draw_request_success_failure_donut() {
+    d3.json("http://localhost:8000/sync-request-failure-success", function(data) {
+        var total = 0;
+        for (var value in data) {
+            total += data[value];
+        }
+
+        if (total === 0) {
+            $('#sync_request_success_failure_info').show();
+            return;
+        }
+
+        console.log(data)
+
+        draw_donut(
+            data,
+            500,
+            200,
+            10,
+            "#sync_request_success_failure",
+            ["success", "failure"]
+        );
+    });
+}
+
 $(document).ready(function() {
     $('#tab5-link').click(function() {
         $('#sync_connectivity').empty();
@@ -433,11 +462,13 @@ $(document).ready(function() {
         $('#block_request_response_time').empty();
         $('#sync_messages_sent_received').empty();
         $('#sync_bytes_sent_received').empty();
+        $('#sync_request_success_failure').empty();
 
         draw_connectivity_bars();
         draw_block_announcements();
         draw_request_response();
-        draw_bytes_sent_received();
-        draw_messages_sent_received();
+        draw_request_success_failure_donut();
+        draw_sync_bytes_sent_received();
+        draw_sync_messages_sent_received();
     });
 });
