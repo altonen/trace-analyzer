@@ -1,8 +1,8 @@
 // draw peer graph count
 function draw_peer_graph() {
     var margin = { top: 30, right: 30, bottom: 50, left: 60 };
-    var width  = 900 - margin.left - margin.right;
-    var height = 550 - margin.top - margin.bottom;
+    var width  = 800 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
 
     var svg = d3.select("#peer_count")
         .append("svg")

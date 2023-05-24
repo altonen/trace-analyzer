@@ -106,7 +106,7 @@ function draw_block_announcements() {
 }
 
 function draw_request_response() {
-    var margin = { top: 0, right: 100, bottom: 30, left: 80 };
+    var margin = { top: 20, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
@@ -216,8 +216,7 @@ function draw_request_response() {
 }
 
 function draw_sync_messages_sent_received() {
-
-    var margin = { top: 0, right: 100, bottom: 30, left: 80 };
+    var margin = { top: 10, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
@@ -326,7 +325,7 @@ function draw_sync_messages_sent_received() {
 }
 
 function draw_sync_bytes_sent_received() {
-    var margin = { top: 0, right: 100, bottom: 30, left: 80 };
+    var margin = { top: 10, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
