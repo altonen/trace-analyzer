@@ -121,25 +121,20 @@ function draw_block_height() {
            .attr("r", 5)
            .attr("stroke", "white")
 
-        svg.selectAll("myLabels")
-           .data(dataReady)
-           .enter()
-           .append('g')
-           .append("text")
-           .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-           .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-           .attr("x", 0)
-           .attr("y", function(_d) {
-                return 50
-               // if (d.name == "best") {
-               //     return 30
-               // } else {
-               //     return 50
-               // }
-           })
-           .text(function(d) { return d.name; })
-           .style("fill", function(d){ return myColor(d.name) })
-           .style("font-size", 10)
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("best")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("best"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("finalized")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("finalized"));
     });
 }
 

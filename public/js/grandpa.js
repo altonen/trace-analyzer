@@ -1,5 +1,5 @@
 function draw_messages_sent_received() {
-    var margin = { top: 0, right: 100, bottom: 30, left: 80 };
+    var margin = { top: 10, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
@@ -89,26 +89,24 @@ function draw_messages_sent_received() {
             .attr("r", 5)
             .attr("stroke", "white")
 
-        svg
-            .selectAll("myLabels")
-            .data(dataReady)
-            .enter()
-            .append('g')
-            .append("text")
-            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-            .attr("x", 0)
-            .attr("y", function(_d) {
-                return -100
-            })
-            .text(function(d) { return d.name; })
-            .style("fill", function(d){ return myColor(d.name) })
-            .style("font-size", 10)
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("sent")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("sent"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("received")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("received"));
     });
 }
 
 function draw_bytes_sent_received() {
-    var margin = { top: 0, right: 100, bottom: 30, left: 80 };
+    var margin = { top: 10, right: 100, bottom: 30, left: 80 };
     var width = 1000 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
@@ -198,21 +196,19 @@ function draw_bytes_sent_received() {
             .attr("r", 5)
             .attr("stroke", "white")
 
-        svg
-            .selectAll("myLabels")
-            .data(dataReady)
-            .enter()
-            .append('g')
-            .append("text")
-            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-            .attr("x", 0)
-            .attr("y", function(_d) {
-                return -100
-            })
-            .text(function(d) { return d.name; })
-            .style("fill", function(d){ return myColor(d.name) })
-            .style("font-size", 10)
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("sent")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("sent"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("received")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("received"));
     });
 }
 

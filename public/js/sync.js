@@ -197,21 +197,19 @@ function draw_request_response() {
             .attr("r", 5)
             .attr("stroke", "white")
 
-        svg
-            .selectAll("myLabels")
-            .data(dataReady)
-            .enter()
-            .append('g')
-            .append("text")
-            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-            .attr("x", 0)
-            .attr("y", function(_d) {
-                return -100
-            })
-            .text(function(d) { return d.name; })
-            .style("fill", function(d){ return myColor(d.name) })
-            .style("font-size", 10)
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("request")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("request"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("response")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("response"));
     });
 }
 
@@ -306,21 +304,19 @@ function draw_sync_messages_sent_received() {
             .attr("r", 5)
             .attr("stroke", "white")
 
-        svg
-            .selectAll("myLabels")
-            .data(dataReady)
-            .enter()
-            .append('g')
-            .append("text")
-            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-            .attr("x", 0)
-            .attr("y", function(_d) {
-                return -100
-            })
-            .text(function(d) { return d.name; })
-            .style("fill", function(d){ return myColor(d.name) })
-            .style("font-size", 10)
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("sent")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("sent"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("received")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("received"));
     });
 }
 
@@ -419,21 +415,19 @@ function draw_sync_bytes_sent_received() {
             .attr("r", 5)
             .attr("stroke", "white")
 
-        svg
-            .selectAll("myLabels")
-            .data(dataReady)
-            .enter()
-            .append('g')
-            .append("text")
-            .datum(function(d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
-            .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.value) + ")"; })
-            .attr("x", 0)
-            .attr("y", function(_d) {
-                return -100
-            })
-            .text(function(d) { return d.name; })
-            .style("fill", function(d){ return myColor(d.name) })
-            .style("font-size", 10)
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 0)
+            .text("sent")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("sent"));
+
+        svg.append("text")
+            .attr("x", 10)
+            .attr("y", 15)
+            .text("received")
+            .attr("font-size", "12px")
+            .attr("fill", myColor("received"));
     });
 }
 
