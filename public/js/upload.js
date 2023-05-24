@@ -11,7 +11,7 @@ var websocketAddr = document.location.host;
 
 function websocketOpenListener() {
     $("#server_conn").hide();
-    $("#select_file").show();
+    $("#upload_file").show();
     console.log("connection established");
 }
 
@@ -42,13 +42,13 @@ function websocketMessageListener(message) {
 function websocketCloseListener(error) {
     console.log("connection closed...");        
     $("#server_conn").show();
-    $("#select_file").hide();
+    $("#upload_file").hide();
     setTimeout(connectWebsocket, 1000, websocketAddr);    
 }
 
 function websocketErrorListener(error) {
     $("#server_conn").hide();
-    $("#select_file").show();
+    $("#upload_file").show();
     setTimeout(connectWebsocket, 1000, websocketAddr);
 }
 
@@ -84,5 +84,38 @@ $(document).ready(function() {
         $("#tab30-link").prop('class', 'nav-link disabled');
         var status = { "status": { "deleteFiles": true }};
         connection.send(JSON.stringify(status));
+    });
+
+    $('#fileInput').change(function() {
+        console.log("change status to enabled");
+        $('#upload_file').prop('class', 'btn btn-primary ');
+    });
+
+    $('#upload_file').click(function() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        $('#file_text').html("Uploading file...");
+        $('#file_status').show();
+
+        fetch('http://localhost:8000/upload', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('File uploaded successfully.');
+                $('#file_text').html("Analyzing file...");
+                $('#file_status').show();
+            } else {
+                throw new Error('File upload failed.');
+            }
+        })
+        .catch(error => {
+        console.error(error);
+        });
     });
 });

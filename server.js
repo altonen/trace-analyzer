@@ -4,9 +4,11 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-let WebSocket = require("ws");
-let WSServer = require("ws").Server;
 const fs = require('fs');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+
+let WSServer = require("ws").Server;
 
 const app = express();
 
@@ -224,6 +226,24 @@ app.get('/resumable.js', (req, res) => {
 
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(filePath);
+});
+
+app.use(bodyParser.json({ limit: '10gb' }));
+app.use(bodyParser.urlencoded({ limit: '10gb', extended: true }));
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+});
+const upload = multer({ storage });
+
+app.post('/upload', upload.single('file'), (req, res) => {
+    console.log('file uploaded sucecssfully');
+    res.status(200).send('File uploaded successfully.');
 });
 
 var server = require("http").createServer();

@@ -38,14 +38,22 @@
   <div class="tab-content mt-2">
     <div id="tab1" class="tab-pane fade show active">
       <h3>Upload log file</h3>
-      <br>
 
-      <button class="btn btn-primary" type="button" disabled  id="server_conn">
+      <button class="btn btn-primary" type="button" disabled id="server_conn">
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Connecting to server...
       </button>
       <button type="button" class="btn btn-danger" id="delete_files" style="display: none">Remove files</button>
-      <button type="button" class="btn btn-primary" id="select_file"  style="display: none">Select log file</button>
+
+      <div class="mb-3">
+          <label for="formFile" class="form-label">File input</label>
+          <input class="form-control" type="file" id="fileInput">
+      </div>
+      <button class="btn btn-primary" type="button" disabled id="file_status" style="display: none">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span class="" id="file_text"></span>
+      </button>
+      <button type="button" class="btn btn-primary disabled" id="upload_file" style="display: none">Upload</button>
     </div>
 
     <div id="tab2" class="tab-pane fade">
