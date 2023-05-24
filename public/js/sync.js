@@ -69,6 +69,8 @@ function draw_block_announcements() {
             if (data.length === 0) {
                 $("#block_announcement_info").show();
                 return;
+            } else {
+                $("#block_announcement_info").hide();
             }
 
             var svg = d3.select("#block_announcements")
@@ -137,6 +139,8 @@ function draw_request_response() {
         if (total === 0) {
             $('#block_request_response_time_info').show();
             return;
+        } else {
+            $('#block_request_response_time_info').hide();
         }
 
         var svg = d3.select("#block_request_response_time")
@@ -246,6 +250,8 @@ function draw_sync_messages_sent_received() {
         if (total === 0) {
             $('#sync_messages_sent_received_info').show();
             return;
+        } else {
+            $('#sync_messages_sent_received_info').hide();
         }
 
         var svg = d3.select("#sync_messages_sent_received")
@@ -357,6 +363,8 @@ function draw_sync_bytes_sent_received() {
         if (total === 0) {
             $('#sync_bytes_sent_received_info').show();
             return;
+        } else {
+            $('#sync_bytes_sent_received_info').hide();
         }
 
         var svg = d3.select("#sync_bytes_sent_received")
@@ -440,8 +448,10 @@ function draw_request_success_failure_donut() {
         if (total === 0) {
             $('#sync_request_success_failure_info').show();
             return;
+        } else {
+            $('#sync_request_success_failure_info').hide();
         }
-
+ 
         console.log(data)
 
         draw_donut(

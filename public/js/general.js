@@ -66,10 +66,14 @@ function draw_block_height() {
 
         if (repeating_best > 10 || repeating_best_highest > 10) {
             $('#best_block').show();
+        } else {
+            $('#best_block').hide();
         }
 
         if (repeating_finalized > 10 || repeating_finalized_highest > 10) {
             $('#finalized_block').show();
+        } else {
+            $('#finalized_block').hide();
         }
 
         var myColor = d3.scaleOrdinal()
@@ -164,6 +168,8 @@ function draw_block_import() {
         // TODO: maybe not the best metric?
         if (slow_import_count > 5) {
             $('#slow_block_import').show();
+        } else {
+            $('#slow_block_import').hide();
         }
 
         var x = d3.scaleLinear()

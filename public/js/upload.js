@@ -18,6 +18,7 @@ function websocketOpenListener() {
 function websocketMessageListener(message) {
     var message_data = null;
 
+
     try {
         message_data = JSON.parse(message.data);
     } catch (e) {
@@ -25,6 +26,8 @@ function websocketMessageListener(message) {
         console.log(e);
         return;
     }
+
+    console.log('send message', message_data);
 
     if ("noFiles" in message_data["status"]) {
         if (message_data["status"]["noFiles"] === false) {
@@ -36,6 +39,13 @@ function websocketMessageListener(message) {
 
     if ("filesDeleted" in message_data["status"]) {
         $("#delete_files").prop('class', 'btn btn-danger disabled');
+    }
+
+    if ("analysisReady" in message_data["status"]) {
+        $("#tab2-link").prop('class', 'nav-link');
+        $("#tab30-link").prop('class', 'nav-link');
+        $("#delete_files").show();
+        $('#file_status').hide();
     }
 }
 
@@ -88,7 +98,7 @@ $(document).ready(function() {
 
     $('#fileInput').change(function() {
         console.log("change status to enabled");
-        $('#upload_file').prop('class', 'btn btn-primary ');
+        $('#upload_file').prop('class', 'btn btn-primary');
     });
 
     $('#upload_file').click(function() {
@@ -100,6 +110,7 @@ $(document).ready(function() {
 
         $('#file_text').html("Uploading file...");
         $('#file_status').show();
+        $('#upload_file').prop('class', 'btn btn-primary disabled');
 
         fetch('http://localhost:8000/upload', {
             method: 'POST',

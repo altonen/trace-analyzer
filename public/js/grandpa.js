@@ -32,6 +32,8 @@ function draw_messages_sent_received() {
         if (total === 0) {
             $('#grandpa_messages_sent_received_info').show();
             return;
+        } else {
+            $('#grandpa_messages_sent_received_info').hide();
         }
 
         var svg = d3.select("#grandpa_messages_sent_received")
@@ -139,6 +141,8 @@ function draw_bytes_sent_received() {
         if (total === 0) {
             $('#grandpa_bytes_sent_received_info').show();
             return;
+        } else {
+            $('#grandpa_bytes_sent_received_info').hide();
         }
 
         var svg = d3.select("#grandpa_bytes_sent_received")

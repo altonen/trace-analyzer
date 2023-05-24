@@ -25,6 +25,8 @@ function draw_peer_graph() {
 
             if (peer_counts / data.length < 30.0) {
                 $("#peer_count_warn").show();
+            } else {
+                $("#peer_count_warn").hide();
             }
 
             var x = d3.scaleTime()
@@ -64,6 +66,8 @@ function draw_connectivity_donut() {
             console.log(total);
             $('#connectivity_info').show();
             return;
+        } else {
+            $('#connectivity_info').hide();
         }
 
         draw_donut(
@@ -86,6 +90,8 @@ function draw_roles_donut() {
         if (total === 0) {
             $('#role_info').show();
             return;
+        } else {
+            $('#role_info').hide();
         }
 
         draw_donut(
@@ -108,6 +114,8 @@ function draw_address_donut() {
         if (total === 0) {
             $('#address_info').show();
             return;
+        } else {
+            $('#address_info').hide();
         }
 
         draw_donut(
@@ -135,6 +143,8 @@ function draw_substream_bars() {
         if (max === 0) {
             $('#substream_info').show();
             return;
+        } else {
+            $('#substream_info').hide();
         }
 
         var svg = d3.select("#substream_open_results")

@@ -7,8 +7,10 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const { spawn } = require('child_process');
 
 let WSServer = require("ws").Server;
+var ws_client = null;
 
 const app = express();
 
@@ -242,8 +244,27 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.post('/upload', upload.single('file'), (req, res) => {
-    console.log('file uploaded sucecssfully');
+    console.log('file uploaded sucecssfully', req.file.path);
     res.status(200).send('File uploaded successfully.');
+
+    const program = 'target/release/trace-analyzer';
+    const args = ['--file', req.file.path];
+
+    const childProcess = spawn(program, args);
+
+    // Event handler for capturing the output of the external program
+    childProcess.stdout.on('data', data => {
+        console.log(data);
+    });
+
+    childProcess.on('error', error => {
+        console.error(`Error starting the program: ${error}`);
+    });
+
+    childProcess.on('exit', (code, signal) => {
+        console.log(`Program exited with code ${code} and signal ${signal}`);
+        ws_client.send(JSON.stringify({ 'status': { "analysisReady": 0 } }));
+    })
 });
 
 var server = require("http").createServer();
@@ -257,6 +278,7 @@ let wss = new WSServer({
 wss.on('connection', function(client) {
     const files = fs.readdirSync("results/");
     console.log("client connected")
+    ws_client = client;
 
     client.send(JSON.stringify({ 'status': { "noFiles": files.length === 0 } }));
 

@@ -33,6 +33,8 @@ function draw_sent_bytes() {
         if (total === 0) {
             $('#bytes_sent_info').show();
             return;
+        } else {
+            $('#bytes_sent_info').hide();
         }
 
         var svg = d3.select("#bytes_sent")
@@ -145,6 +147,8 @@ function draw_sent_messages() {
         if (total === 0) {
             $('#messages_sent_info').show();
             return;
+        } else {
+            $('#messages_sent_info').hide();
         }
 
         var svg = d3.select("#messages_sent")
@@ -257,6 +261,8 @@ function draw_received_bytes() {
         if (total === 0) {
             $('#bytes_received_info').show();
             return;
+        } else {
+            $('#bytes_received_info').hide();
         }
 
         var svg = d3.select("#bytes_received")
@@ -365,6 +371,8 @@ function draw_received_messages() {
         if (total === 0) {
             $('#messages_received_info').show();
             return;
+        } else {
+            $('#messages_received_info').hide();
         }
 
       var svg = d3.select("#messages_received")
