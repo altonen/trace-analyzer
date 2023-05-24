@@ -1,3 +1,6 @@
+// Parts of the code from here have been taken from https://github.com/ultravideo/cloud-encoder
+// which is licensed under BSD-2.
+
 // if user is running mozilla then use it's built-in WebSocket
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 
@@ -7,6 +10,8 @@ var connection = null;
 var websocketAddr = document.location.host;
 
 function websocketOpenListener() {
+    $("#server_conn").hide();
+    $("#select_file").show();
     console.log("connection established");
 }
 
@@ -37,11 +42,13 @@ function websocketMessageListener(message) {
 function websocketCloseListener(error) {
     console.log("connection closed...");        
     $("#server_conn").show();
+    $("#select_file").hide();
     setTimeout(connectWebsocket, 1000, websocketAddr);    
 }
 
 function websocketErrorListener(error) {
-    console.log(error);
+    $("#server_conn").hide();
+    $("#select_file").show();
     setTimeout(connectWebsocket, 1000, websocketAddr);
 }
 
@@ -54,12 +61,11 @@ function connectWebsocket(addr) {
             connection.removeEventListener('error',websocketErrorListener);
         } catch (e) {
             console.log("Failed to remove listeners..");
+            return
         }
     }
 
     connection = new WebSocket(('https:' == document.location.protocol ? 'wss' : 'ws') + '://' + addr);  
-
-    $("#server_conn").hide();
 
     connection.addEventListener('open',websocketOpenListener);
     connection.addEventListener('message',websocketMessageListener);
@@ -70,11 +76,8 @@ function connectWebsocket(addr) {
 $(document).ready(function() {
     connectWebsocket(websocketAddr);
 
-    console.log("contact server and check if anything is availble");
-    // $("#progress_spinner").show();
     $("#tab2-link").prop('class', 'nav-link disabled');
     $("#tab30-link").prop('class', 'nav-link disabled');
-    console.log("disable button")
 
     $('#delete_files').click(function() {
         $("#tab2-link").prop('class', 'nav-link disabled');
