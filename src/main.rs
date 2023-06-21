@@ -273,6 +273,8 @@ fn process_line<'a>(line: &'a str, set: &RegexSet, regexes: &Vec<Regex>) -> Vec<
                 "0" => 0,
                 "1" => 1,
                 "2" => 2,
+                "3" => 3,
+                "4" => 4,
                 substream => panic!("invalid substream {substream:?}"),
             };
 
@@ -286,6 +288,8 @@ fn process_line<'a>(line: &'a str, set: &RegexSet, regexes: &Vec<Regex>) -> Vec<
                 "0" => 0,
                 "1" => 1,
                 "2" => 2,
+                "3" => 3,
+                "4" => 4,
                 substream => panic!("invalid substream {substream:?}"),
             };
 
@@ -560,11 +564,13 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                         sync_byte_info.1 += received;
                         sync_msg_info.1 += 1;
                     }
-                    "1" => {}
-                    "2" => {
+                    "1" => {
                         grandpa_byte_info.1 += received;
                         grandpa_msg_info.1 += 1;
                     }
+                    "2" => {}
+                    "2" => {}
+                    "4" => {}
                     _ => panic!("unrecognized protocol"),
                 }
 
@@ -578,11 +584,13 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
                         sync_byte_info.0 += sent;
                         sync_msg_info.0 += 1;
                     }
-                    "1" => {}
-                    "2" => {
+                    "1" => {
                         grandpa_byte_info.0 += sent;
                         grandpa_msg_info.0 += 1;
                     }
+                    "2" => {}
+                    "3" => {}
+                    "4" => {}
                     proto => println!("unrecognized protocol: {proto}"),
                 }
 
@@ -617,14 +625,14 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
             }
             DeltaType::SubstreamOpenSuccess(protocol) => match protocol {
                 0 => block_announce_substream.success += 1,
-                1 => transaction_substream.success += 1,
-                2 => grandpa_substream.success += 1,
+                1 => grandpa_substream.success += 1,
+                4 => transaction_substream.success += 1,
                 _ => {}
             },
             DeltaType::SubstreamOpenFailure(protocol) => match protocol {
                 0 => block_announce_substream.failure += 1,
-                1 => transaction_substream.failure += 1,
-                2 => grandpa_substream.failure += 1,
+                1 => grandpa_substream.failure += 1,
+                4 => transaction_substream.failure += 1,
                 _ => {}
             },
             DeltaType::RequestFailed(peer) => {
