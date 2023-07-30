@@ -325,7 +325,7 @@ fn analyze_optimized(reader: BufReader<File>) -> Result<(), Box<dyn Error>> {
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*External API.*Notification\(PeerId.*([a-zA-Z0-9]+)\"\), OnHeap\(\"([^"]+)\"\), (\d+) bytes"#,
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Dialing[^"]+\"([a-zA-Z0-9]+)"#,
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Failed to reach PeerId.*([a-zA-Z0-9]+)"#,
-        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\((\d+)\), ([a-zA-Z]+).*address: .*(dns|ip4|ip6)",
+        r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Connected\(([a-zA-Z0-9]+), SetId\((\d+)\), ([a-zA-Z]+).*addr.*: .*(dns|ip4|ip6)",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Libp2p.*Disconnected\(PeerId.*([a-zA-Z0-9]+)"#,
         r"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultOk\(SetId\((\d+)\)\)",
         r#"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}.\d{3}).*Handler\(PeerId[^"]+\"([a-zA-Z0-9]+).*ConnectionId\((\d+)\)\).*OpenResultErr\(SetId\((\d+)\)\)"#,
